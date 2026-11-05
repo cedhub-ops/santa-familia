@@ -1,6 +1,6 @@
 // Service worker : rend l'application installable et rapide à ouvrir.
 // Les données (API Google) ne sont jamais mises en cache : elles restent toujours à jour.
-const CACHE = 'secret-santa-v1';
+const CACHE = 'secret-santa-v2';
 const SHELL = ['./', 'index.html', 'config.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
