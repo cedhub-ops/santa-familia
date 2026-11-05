@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Secret Santa</title>
+<meta name="theme-color" content="#c0392b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Secret Santa">
+<script src="config.js"></script>
+<style>
+  :root {
+    --red: #c0392b; --red-dark: #962d22; --green: #1e6b45; --green-soft: #e3f1e9;
+    --cream: #fdf8f1; --ink: #2b2522; --muted: #7a6f68; --line: #eadfd3; --card: #ffffff;
+    --gold: #e0a526;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--cream); color: var(--ink);
+    font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 16px 16px 40px; }
+  header.hero { background: linear-gradient(160deg, var(--red), var(--red-dark)); color: #fff;
+    padding: 28px 16px 22px; text-align: center; border-radius: 0 0 24px 24px; }
+  header.hero h1 { margin: 0; font-size: 26px; letter-spacing: .3px; }
+  header.hero p { margin: 6px 0 0; opacity: .9; font-size: 15px; }
+  h2 { font-size: 18px; margin: 22px 0 10px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin: 12px 0; }
+  .muted { color: var(--muted); font-size: 14px; }
+  .names { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .name-btn { background: var(--card); border: 2px solid var(--line); border-radius: 14px; padding: 14px 10px;
+    font-size: 16px; font-weight: 600; text-align: center; cursor: pointer; color: var(--ink); }
+  .name-btn small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .name-btn:active { transform: scale(.98); }
+  button.primary, button.secondary, button.danger, button.ghost {
+    border: 0; border-radius: 12px; padding: 12px 16px; font-size: 16px; font-weight: 600; cursor: pointer; }
+  button.primary { background: var(--green); color: #fff; width: 100%; }
+  button.secondary { background: var(--green-soft); color: var(--green); }
+  button.danger { background: #fbe9e7; color: var(--red-dark); }
+  button.ghost { background: transparent; color: var(--muted); padding: 8px; font-weight: 500; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  input, select, textarea { width: 100%; font: inherit; padding: 12px; border: 1.5px solid var(--line);
+    border-radius: 12px; background: #fff; color: var(--ink); margin: 6px 0 10px; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--green); }
+  input.pin { font-size: 24px; letter-spacing: 8px; text-align: center; }
+  label { font-size: 14px; font-weight: 600; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row > * { flex: 1; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px;
+    background: var(--red); color: #fff; }
+  .topbar b { font-size: 17px; }
+  .topbar button { background: rgba(255,255,255,.18); color: #fff; border: 0; border-radius: 10px; padding: 8px 12px; font-size: 14px; }
+  .tabs { display: flex; position: sticky; top: 0; background: var(--cream); border-bottom: 1px solid var(--line); z-index: 2; }
+  .tabs button { flex: 1; background: none; border: 0; padding: 12px 4px; font-size: 14px; color: var(--muted);
+    border-bottom: 3px solid transparent; cursor: pointer; }
+  .tabs button.on { color: var(--red); border-bottom-color: var(--red); font-weight: 700; }
+  ul.ideas { list-style: none; margin: 0; padding: 0; }
+  ul.ideas li { display: flex; gap: 10px; align-items: flex-start; padding: 12px 0; border-top: 1px solid var(--line); }
+  ul.ideas li:first-child { border-top: 0; }
+  ul.ideas .txt { flex: 1; word-break: break-word; }
+  ul.ideas a { color: var(--green); font-size: 14px; word-break: break-all; }
+  ul.ideas .by { display: block; font-size: 12px; color: var(--muted); }
+  .del { background: none; border: 0; color: var(--muted); font-size: 20px; line-height: 1; padding: 2px 6px; cursor: pointer; }
+  .reveal { text-align: center; padding: 28px 16px; background: linear-gradient(160deg, var(--green), #155236);
+    color: #fff; border: 0; cursor: pointer; }
+  .reveal .big { font-size: 30px; font-weight: 800; margin: 8px 0; }
+  .reveal .gift { font-size: 54px; }
+  .pill { display: inline-block; font-size: 12px; padding: 3px 8px; border-radius: 99px; font-weight: 600; }
+  .pill.ok { background: var(--green-soft); color: var(--green); }
+  .pill.wait { background: #fff3d6; color: #8a6200; }
+  .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--ink); color: #fff;
+    padding: 12px 18px; border-radius: 12px; font-size: 15px; max-width: calc(100% - 32px); z-index: 10;
+    box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+  .toast.err { background: var(--red-dark); }
+  .hidden { display: none !important; }
+  header.hero { padding-top: calc(28px + env(safe-area-inset-top)); }
+  .topbar { padding-top: calc(14px + env(safe-area-inset-top)); }
+  .wrap { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+  .install { display: flex; gap: 10px; align-items: center; background: #fff; border: 2px dashed var(--gold);
+    border-radius: 14px; padding: 12px; margin: 0 0 14px; font-size: 14px; }
+  .install .txt { flex: 1; }
+  .install button.primary { width: auto; padding: 10px 14px; font-size: 14px; }
+  .center { text-align: center; }
+  .spinner { width: 36px; height: 36px; border: 4px solid var(--line); border-top-color: var(--red);
+    border-radius: 50%; animation: spin 1s linear infinite; margin: 60px auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .footer { text-align: center; margin-top: 30px; }
+  .notice { background: #fff3d6; border-radius: 12px; padding: 10px 12px; font-size: 14px; color: #6b4d00; }
+  .admin-person { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .admin-person:first-child { border-top: 0; }
+  .admin-person .n { flex: 1; font-weight: 600; }
+  .admin-person button { padding: 6px 10px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div></div>
+
+<!-- ========== ACCUEIL ========== -->
+<section id="welcome" class="hidden">
+  <header class="hero">
+    <h1>🎅 Secret Santa</h1>
+    <p>Qui es-tu ?</p>
+  </header>
+  <div class="wrap">
+    <div id="installBox" class="install hidden">
+      <span style="font-size:28px">📲</span>
+      <div class="txt" id="installTxt"></div>
+      <button id="installBtn" class="primary hidden">Installer</button>
+      <button class="del" onclick="hideInstall()" title="Masquer">×</button>
+    </div>
+    <p id="configError" class="notice hidden">⚠️ L'application n'est pas encore reliée à Google Sheets : renseigne l'adresse de l'API dans <code>config.js</code>.</p>
+    <div id="names" class="names"></div>
+    <p id="noNames" class="muted center hidden">L'organisateur n'a pas encore ajouté les participants.</p>
+
+    <div id="authCard" class="card hidden">
+      <h2 id="authTitle" style="margin-top:0"></h2>
+      <p id="authHelp" class="muted"></p>
+      <label for="pin1">Ton code secret (4 à 6 chiffres)</label>
+      <input id="pin1" class="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off">
+      <div id="pin2Wrap">
+        <label for="pin2">Confirme ton code</label>
+        <input id="pin2" class="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off">
+      </div>
+      <button id="authBtn" class="primary"></button>
+      <button class="ghost" onclick="cancelAuth()">← Choisir un autre nom</button>
+    </div>
+
+    <div class="footer"><button class="ghost" onclick="openAdmin()">🔧 Espace organisateur</button></div>
+  </div>
+</section>
+
+<!-- ========== APPLICATION ========== -->
+<section id="app" class="hidden">
+  <div class="topbar"><b id="hello"></b><button onclick="doLogout()">Déconnexion</button></div>
+  <nav class="tabs">
+    <button data-tab="draw" class="on">🎁 Mon tirage</button>
+    <button data-tab="wishes">📝 Ma liste</button>
+    <button data-tab="others">💡 Pour les autres</button>
+  </nav>
+  <div class="wrap">
+
+    <!-- Tirage -->
+    <div id="tab-draw">
+      <div id="drawWaiting" class="card center">
+        <div style="font-size:48px">⏳</div>
+        <h2 style="margin-top:6px">Le tirage n'a pas encore eu lieu</h2>
+        <p class="muted">En attendant, complète ta liste d'envies et propose des idées pour les autres !</p>
+      </div>
+      <div id="drawDone" class="hidden">
+        <div id="revealCard" class="card reveal" onclick="toggleReveal()">
+          <div class="gift">🎁</div>
+          <div id="revealHidden">Touche pour découvrir<br>à qui tu offres un cadeau</div>
+          <div id="revealShown" class="hidden">Tu offres un cadeau à<div class="big" id="targetName"></div><small>(touche pour masquer)</small></div>
+        </div>
+        <div id="targetIdeas" class="hidden">
+          <div class="card">
+            <h2 style="margin-top:0">📝 Sa liste d'envies</h2>
+            <ul id="targetOwn" class="ideas"></ul>
+          </div>
+          <div class="card">
+            <h2 style="margin-top:0">💡 Idées des autres participants</h2>
+            <p class="muted" style="margin-top:-4px">Ces idées sont secrètes : <span class="tname"></span> ne les voit pas.</p>
+            <ul id="targetOthers" class="ideas"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ma liste -->
+    <div id="tab-wishes" class="hidden">
+      <div class="card">
+        <h2 style="margin-top:0">Ajouter une envie</h2>
+        <form onsubmit="addWish(event)">
+          <input id="wishText" placeholder="Ex : un livre de cuisine italienne" maxlength="300">
+          <input id="wishLink" type="url" placeholder="Lien (facultatif)">
+          <button class="primary">Ajouter</button>
+        </form>
+      </div>
+      <div class="card">
+        <h2 style="margin-top:0">Ma liste</h2>
+        <p class="muted" style="margin-top:-4px">Seul ton Secret Santa verra cette liste.</p>
+        <ul id="myWishes" class="ideas"></ul>
+      </div>
+    </div>
+
+    <!-- Pour les autres -->
+    <div id="tab-others" class="hidden">
+      <div class="card">
+        <h2 style="margin-top:0">Proposer une idée</h2>
+        <p class="muted" style="margin-top:-4px">La personne ne la verra jamais : seul son Secret Santa y aura accès.</p>
+        <form onsubmit="addOther(event)">
+          <label for="otherFor">Pour qui ?</label>
+          <select id="otherFor"></select>
+          <input id="otherText" placeholder="Ex : elle adore les plantes grasses" maxlength="300">
+          <input id="otherLink" type="url" placeholder="Lien (facultatif)">
+          <button class="primary">Proposer</button>
+        </form>
+      </div>
+      <div class="card">
+        <h2 style="margin-top:0">Mes idées pour les autres</h2>
+        <ul id="myOthers" class="ideas"></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== ORGANISATEUR ========== -->
+<section id="admin" class="hidden">
+  <div class="topbar"><b>🔧 Organisateur</b><button onclick="closeAdmin()">Fermer</button></div>
+  <div class="wrap">
+    <div id="adminLogin" class="card">
+      <label for="adminCode">Code organisateur</label>
+      <input id="adminCode" type="password" autocomplete="off">
+      <button class="primary" onclick="adminLogin()">Entrer</button>
+    </div>
+
+    <div id="adminPanel" class="hidden">
+      <p id="defaultCodeWarn" class="notice hidden">⚠️ Ton code organisateur est court : choisis-en un d'au moins 6 caractères (propriété <code>ADMIN_CODE</code> dans Apps Script).</p>
+
+      <h2>👥 Participants <span id="regCount" class="muted"></span></h2>
+      <div class="card">
+        <div id="adminPeople"></div>
+        <form class="row" style="margin-top:10px" onsubmit="adminAdd(event)">
+          <input id="newName" placeholder="Prénom" maxlength="40" style="margin:0">
+          <button class="secondary" style="flex:0 0 auto">Ajouter</button>
+        </form>
+      </div>
+
+      <h2>🚫 Exclusions</h2>
+      <div class="card">
+        <p class="muted" style="margin-top:0">Ces deux personnes ne pourront pas se tirer mutuellement (ex. un couple).</p>
+        <div class="row"><select id="exA"></select><select id="exB"></select></div>
+        <button class="secondary" style="width:100%" onclick="adminAddEx()">Ajouter l'exclusion</button>
+        <ul id="exList" class="ideas" style="margin-top:8px"></ul>
+      </div>
+
+      <h2>🎲 Tirage au sort</h2>
+      <div class="card">
+        <p id="drawStatus" class="muted" style="margin-top:0"></p>
+        <button id="drawBtn" class="primary" onclick="adminDraw()">Lancer le tirage</button>
+        <button id="resetDrawBtn" class="danger hidden" style="width:100%" onclick="adminResetDraw()">Annuler le tirage</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+/* ---------- Appels serveur ---------- */
+const API_URL = window.SECRET_SANTA_API_URL || '';
+async function api(fn) {
+  const args = Array.prototype.slice.call(arguments, 1);
+  if (!/^https:\/\//.test(API_URL)) throw new Error('API non configurée (config.js).');
+  let res;
+  try {
+    // text/plain = requête « simple » : pas de pré-vérification CORS, compatible Apps Script.
+    res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: fn, args: args }) });
+  } catch (e) { throw new Error('Pas de connexion. Vérifie ton réseau et réessaie.'); }
+  let j;
+  try { j = await res.json(); } catch (e) { throw new Error('Le serveur ne répond pas correctement (vérifie le déploiement Apps Script).'); }
+  if (!j.ok) throw new Error(j.error);
+  return j.result;
+}
+function errMsg(e) { return (e && e.message ? e.message : String(e)).replace(/^(Exception|Error):\s*/, ''); }
+
+/* ---------- Stockage local (session) ---------- */
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} },
+};
+
+/* ---------- Petits utilitaires ---------- */
+const $ = id => document.getElementById(id);
+function el(tag, props, children) {
+  const n = document.createElement(tag);
+  Object.assign(n, props || {});
+  (children || []).forEach(c => n.append(c));
+  return n;
+}
+function show(id) { ['loading', 'welcome', 'app', 'admin'].forEach(s => $(s).classList.toggle('hidden', s !== id)); window.scrollTo(0, 0); }
+let toastTimer;
+function toast(msg, isErr) {
+  const t = $('toast'); t.textContent = msg; t.className = 'toast' + (isErr ? ' err' : '');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add('hidden'), 3200);
+}
+async function busy(btn, fn) {
+  if (btn) btn.disabled = true;
+  try { return await fn(); }
+  catch (e) {
+    const m = errMsg(e);
+    if (m === 'SESSION') { toast('Session expirée, reconnecte-toi.', true); return logoutLocal(); }
+    toast(m, true);
+  }
+  finally { if (btn) btn.disabled = false; }
+}
+
+/* ---------- Rendu d'une liste d'idées ---------- */
+function ideaList(ul, ideas, opts) {
+  ul.innerHTML = '';
+  if (!ideas.length) { ul.append(el('li', { className: 'muted', textContent: opts.empty })); return; }
+  ideas.forEach(i => {
+    const txt = el('div', { className: 'txt' }, [document.createTextNode(i.text)]);
+    if (i.link && /^https?:\/\//i.test(i.link)) {
+      txt.append(el('br'), el('a', { href: i.link, target: '_blank', rel: 'noopener noreferrer', textContent: '🔗 ' + i.link }));
+    }
+    if (opts.showFor) txt.prepend(el('span', { className: 'by', textContent: 'Pour ' + i.forName }));
+    if (opts.showBy) txt.append(el('span', { className: 'by', textContent: 'Proposé par ' + i.author }));
+    const li = el('li', {}, [txt]);
+    if (opts.deletable) {
+      li.append(el('button', { className: 'del', title: 'Supprimer', textContent: '×', onclick: () => removeIdea(i.id) }));
+    }
+    ul.append(li);
+  });
+}
+
+/* ========== ACCUEIL ========== */
+let picked = null;
+async function loadWelcome() {
+  show('loading');
+  const st = await busy(null, () => api('getPublicState'));
+  if (!st) return;
+  const box = $('names'); box.innerHTML = '';
+  st.participants.forEach(p => {
+    box.append(el('button', {
+      className: 'name-btn',
+      onclick: () => pickName(p),
+    }, [document.createTextNode(p.name), el('small', { textContent: p.claimed ? 'Se connecter' : 'Créer mon compte' })]));
+  });
+  $('noNames').classList.toggle('hidden', st.participants.length > 0);
+  cancelAuth();
+  show('welcome');
+}
+function pickName(p) {
+  picked = p;
+  $('names').classList.add('hidden');
+  $('authCard').classList.remove('hidden');
+  $('pin1').value = ''; $('pin2').value = '';
+  $('pin2Wrap').classList.toggle('hidden', p.claimed);
+  $('authTitle').textContent = (p.claimed ? 'Bon retour ' : 'Bienvenue ') + p.name + ' !';
+  $('authHelp').textContent = p.claimed ? 'Entre ton code secret.' : 'Choisis un code secret : il te servira à te reconnecter. Ne le partage pas !';
+  $('authBtn').textContent = p.claimed ? 'Se connecter' : 'Créer mon compte';
+  setTimeout(() => $('pin1').focus(), 50);
+}
+function cancelAuth() { picked = null; $('names').classList.remove('hidden'); $('authCard').classList.add('hidden'); }
+$('authBtn').onclick = () => busy($('authBtn'), async () => {
+  const pin = $('pin1').value.trim();
+  if (!/^\d{4,6}$/.test(pin)) throw new Error('Le code doit contenir 4 à 6 chiffres.');
+  let res;
+  if (picked.claimed) res = await api('login', picked.name, pin);
+  else {
+    if (pin !== $('pin2').value.trim()) throw new Error('Les deux codes ne correspondent pas.');
+    res = await api('register', picked.name, pin);
+  }
+  store.set('ss_token', res.token);
+  await loadApp();
+});
+$('pin1').addEventListener('keydown', e => { if (e.key === 'Enter' && picked && picked.claimed) $('authBtn').click(); });
+
+/* ========== APPLICATION ========== */
+let data = null;
+async function loadApp(keepTab) {
+  if (!keepTab) show('loading');
+  const d = await busy(null, () => api('getDashboard', store.get('ss_token')));
+  if (!d) return;
+  data = d;
+  $('hello').textContent = 'Salut ' + d.me + ' 👋';
+
+  // Tirage
+  $('drawWaiting').classList.toggle('hidden', !!d.target);
+  $('drawDone').classList.toggle('hidden', !d.target);
+  if (d.target) {
+    $('targetName').textContent = d.target.name;
+    document.querySelectorAll('.tname').forEach(n => n.textContent = d.target.name);
+    ideaList($('targetOwn'), d.target.ideas.filter(i => i.author === d.target.name), { empty: 'Sa liste est vide pour le moment.' });
+    ideaList($('targetOthers'), d.target.ideas.filter(i => i.author !== d.target.name), { empty: 'Pas encore d\'idée proposée.', showBy: true });
+  }
+
+  // Ma liste
+  ideaList($('myWishes'), d.myWishes, { empty: 'Ta liste est vide. Ajoute ta première envie !', deletable: true });
+
+  // Pour les autres
+  const sel = $('otherFor'); const prev = sel.value; sel.innerHTML = '';
+  d.participants.forEach(n => sel.append(el('option', { value: n, textContent: n })));
+  if (d.participants.includes(prev)) sel.value = prev;
+  ideaList($('myOthers'), d.myIdeasForOthers, { empty: 'Aucune idée proposée pour l\'instant.', deletable: true, showFor: true });
+
+  if (!keepTab) { setTab('draw'); show('app'); }
+}
+function setTab(t) {
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  ['draw', 'wishes', 'others'].forEach(x => $('tab-' + x).classList.toggle('hidden', x !== t));
+}
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => setTab(b.dataset.tab));
+function toggleReveal() {
+  const shown = $('revealShown').classList.toggle('hidden');
+  $('revealHidden').classList.toggle('hidden', !shown);
+  $('targetIdeas').classList.toggle('hidden', shown);
+}
+function addWish(e) {
+  e.preventDefault();
+  const btn = e.submitter;
+  busy(btn, async () => {
+    await api('addIdea', store.get('ss_token'), data.me, $('wishText').value, $('wishLink').value);
+    $('wishText').value = ''; $('wishLink').value = '';
+    toast('Envie ajoutée ✨');
+    await loadApp(true);
+  });
+}
+function addOther(e) {
+  e.preventDefault();
+  const btn = e.submitter;
+  busy(btn, async () => {
+    await api('addIdea', store.get('ss_token'), $('otherFor').value, $('otherText').value, $('otherLink').value);
+    $('otherText').value = ''; $('otherLink').value = '';
+    toast('Idée proposée 💡');
+    await loadApp(true);
+  });
+}
+function removeIdea(id) {
+  if (!confirm('Supprimer cette idée ?')) return;
+  busy(null, async () => { await api('deleteIdea', store.get('ss_token'), id); await loadApp(true); });
+}
+async function doLogout() {
+  const t = store.get('ss_token');
+  logoutLocal();
+  try { await api('logout', t); } catch (e) {}
+}
+function logoutLocal() { store.del('ss_token'); data = null; return loadWelcome(); }
+
+/* ========== ORGANISATEUR ========== */
+let adminCode = null;
+function openAdmin() { show('admin'); $('adminLogin').classList.toggle('hidden', !!adminCode); $('adminPanel').classList.toggle('hidden', !adminCode); if (adminCode) adminRefresh(); }
+function closeAdmin() { store.get('ss_token') ? loadApp() : loadWelcome(); }
+function adminLogin() {
+  const code = $('adminCode').value;
+  busy(null, async () => {
+    const st = await api('adminState', code);
+    adminCode = code; $('adminCode').value = '';
+    renderAdmin(st);
+    $('adminLogin').classList.add('hidden'); $('adminPanel').classList.remove('hidden');
+  });
+}
+function adminRefresh() { busy(null, async () => renderAdmin(await api('adminState', adminCode))); }
+function adminCall(btn, fn) {
+  const args = Array.prototype.slice.call(arguments, 2);
+  return busy(btn, async () => renderAdmin(await api.apply(null, [fn, adminCode].concat(args))));
+}
+function renderAdmin(st) {
+  $('defaultCodeWarn').classList.toggle('hidden', !st.defaultCode);
+  const reg = st.participants.filter(p => p.claimed).length;
+  $('regCount').textContent = '(' + reg + '/' + st.participants.length + ' inscrits)';
+  const box = $('adminPeople'); box.innerHTML = '';
+  if (!st.participants.length) box.append(el('p', { className: 'muted', textContent: 'Ajoute les prénoms des participants.' }));
+  st.participants.forEach(p => {
+    const row = el('div', { className: 'admin-person' }, [
+      el('span', { className: 'n', textContent: p.name }),
+      el('span', { className: 'pill ' + (p.claimed ? 'ok' : 'wait'), textContent: p.claimed ? 'inscrit' : 'en attente' }),
+    ]);
+    if (p.claimed) row.append(el('button', { className: 'secondary', textContent: 'Code oublié', title: 'Permet à la personne de recréer son code',
+      onclick: e => confirm('Réinitialiser le code de ' + p.name + ' ? Ses idées sont conservées.') && adminCall(e.target, 'adminResetAccount', p.name) }));
+    if (!st.drawn) row.append(el('button', { className: 'danger', textContent: 'Retirer',
+      onclick: e => confirm('Retirer ' + p.name + ' et toutes ses idées ?') && adminCall(e.target, 'adminRemoveParticipant', p.name) }));
+    box.append(row);
+  });
+
+  ['exA', 'exB'].forEach((id, k) => {
+    const s = $(id); s.innerHTML = '';
+    st.participants.forEach((p, i) => s.append(el('option', { value: p.name, textContent: p.name })));
+    if (k === 1 && st.participants.length > 1) s.selectedIndex = 1;
+  });
+  const ul = $('exList'); ul.innerHTML = '';
+  if (!st.exclusions.length) ul.append(el('li', { className: 'muted', textContent: 'Aucune exclusion.' }));
+  st.exclusions.forEach(x => ul.append(el('li', {}, [
+    el('div', { className: 'txt', textContent: x.a + '  ⇄  ' + x.b }),
+    el('button', { className: 'del', textContent: '×', onclick: e => adminCall(null, 'adminRemoveExclusion', x.a, x.b) }),
+  ])));
+
+  const all = st.participants.length >= 3 && reg === st.participants.length;
+  $('drawBtn').classList.toggle('hidden', st.drawn);
+  $('drawBtn').disabled = !all;
+  $('resetDrawBtn').classList.toggle('hidden', !st.drawn);
+  $('drawStatus').textContent = st.drawn
+    ? '✅ Le tirage a été fait. Chacun peut découvrir sa personne dans l\'application. (Toi non plus, tu ne connais pas les résultats !)'
+    : all ? 'Tout le monde est inscrit, tu peux lancer le tirage.'
+          : 'Le tirage sera possible quand tous les participants (3 minimum) auront créé leur compte.';
+}
+function adminAdd(e) {
+  e.preventDefault();
+  const n = $('newName').value;
+  adminCall(e.submitter, 'adminAddParticipant', n).then(() => { $('newName').value = ''; $('newName').focus(); });
+}
+function adminAddEx() { adminCall(null, 'adminAddExclusion', $('exA').value, $('exB').value); }
+function adminDraw() { if (confirm('Lancer le tirage au sort ?')) adminCall($('drawBtn'), 'adminDraw').then(() => toast('🎉 Tirage effectué !')); }
+function adminResetDraw() { if (confirm('Annuler le tirage ? Chacun perdra la personne qu\'il a tirée.')) adminCall($('resetDrawBtn'), 'adminResetDraw'); }
+
+/* ---------- Installation sur l'écran d'accueil ---------- */
+let deferredPrompt = null;
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function hideInstall() { $('installBox').classList.add('hidden'); store.set('ss_install_hidden', '1'); }
+function setupInstall() {
+  if (isStandalone() || store.get('ss_install_hidden')) return;
+  if (isIOS) {
+    $('installTxt').innerHTML = 'Installe l\'app : touche <b>Partager</b> <span style="font-size:16px">⎋</span> puis <b>« Sur l\'écran d\'accueil »</b>.';
+    $('installBox').classList.remove('hidden');
+  }
+}
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt = e;
+  if (isStandalone() || store.get('ss_install_hidden')) return;
+  $('installTxt').textContent = 'Installe Secret Santa sur ton téléphone pour le retrouver facilement.';
+  $('installBtn').classList.remove('hidden');
+  $('installBox').classList.remove('hidden');
+});
+$('installBtn').onclick = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null; $('installBox').classList.add('hidden');
+};
+window.addEventListener('appinstalled', () => $('installBox').classList.add('hidden'));
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+/* ---------- Démarrage ---------- */
+setupInstall();
+if (!/^https:\/\//.test(API_URL)) { $('configError').classList.remove('hidden'); show('welcome'); }
+else store.get('ss_token') ? loadApp() : loadWelcome();
+</script>
+</body>
+</html>
