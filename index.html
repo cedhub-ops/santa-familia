@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="config.js"></script>
+<script src="config.js?v=6"></script>
 <style>
   :root {
     --fir: #1f3a2e; --fir-2: #2c5242; --fir-soft: #e4ece6;
@@ -859,6 +859,7 @@ function adminLogin() {
   const code = $('adminCode').value;
   busy(null, async () => {
     const st = await api('adminState', code);
+    if (!st.rules) throw new Error('Le serveur Apps Script n\'est pas à jour : recopie Code.gs puis déploie une nouvelle version.');
     adminCode = code; $('adminCode').value = '';
     renderAdmin(st);
     $('adminLogin').classList.add('hidden'); $('adminPanel').classList.remove('hidden');
