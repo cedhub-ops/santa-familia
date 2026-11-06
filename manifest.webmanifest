@@ -1,17 +1,32 @@
 {
-  "name": "Secret Santa",
-  "short_name": "Secret Santa",
-  "description": "Tirage au sort et idées de cadeaux entre participants",
+  "name": "Santa Familia",
+  "short_name": "Santa Familia",
+  "description": "Notre Secret Santa en famille : listes d'envies, idées secrètes et tirage au sort",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#fdf8f1",
-  "theme_color": "#c0392b",
+  "background_color": "#f6f1e7",
+  "theme_color": "#1f3a2e",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

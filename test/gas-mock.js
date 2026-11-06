@@ -44,6 +44,14 @@
   };
 
   g.LockService = { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) };
+  const mails = [], triggers = [];
+  g.MailApp = { sendEmail: o => { mails.push(o); }, getRemainingDailyQuota: () => 100 - mails.length, _mails: mails };
+  g.ScriptApp = {
+    getProjectTriggers: () => triggers.map(f => ({ getHandlerFunction: () => f })),
+    newTrigger: f => ({ timeBased: () => ({ everyHours: () => ({ create: () => { triggers.push(f); } }) }) }),
+    _triggers: triggers,
+  };
+  g.Session = { getScriptTimeZone: () => 'Europe/Paris', getEffectiveUser: () => ({ getEmail: () => 'orga@exemple.fr' }) };
   g.ContentService = { MimeType: { JSON: 'json' }, createTextOutput: t => ({ text: t, setMimeType() { return this; }, getContent() { return t; } }) };
 
   let n = 0;
@@ -68,5 +76,6 @@
     base64Decode: s => ({ __str: dec(s) }),
     newBlob: b => ({ getDataAsString: () => b.__str }),
     sleep: () => {},
+    formatDate: d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'),
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

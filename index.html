@@ -3,167 +3,296 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Secret Santa</title>
-<meta name="theme-color" content="#c0392b">
+<title>Santa Familia</title>
+<meta name="description" content="Notre Secret Santa en famille : listes d'envies, idées secrètes et tirage au sort.">
+<meta name="theme-color" content="#1f3a2e">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Secret Santa">
+<meta name="apple-mobile-web-app-title" content="Santa Familia">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="config.js"></script>
 <style>
   :root {
-    --red: #c0392b; --red-dark: #962d22; --green: #1e6b45; --green-soft: #e3f1e9;
-    --cream: #fdf8f1; --ink: #2b2522; --muted: #7a6f68; --line: #eadfd3; --card: #ffffff;
-    --gold: #e0a526;
+    --fir: #1f3a2e; --fir-2: #2c5242; --fir-soft: #e4ece6;
+    --cream: #f6f1e7; --paper: #fffdf8; --gold: #c9a45c; --gold-soft: #f3ead6; --gold-ink: #7a5f22;
+    --ink: #1c2420; --muted: #6f7d72; --line: #e6dcc8;
+    --danger: #a4452f; --danger-soft: #f6e4dc;
+    --serif: "Fraunces", Georgia, "Times New Roman", serif;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --radius: 20px;
   }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; background: var(--cream); color: var(--ink);
-    font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  .wrap { max-width: 520px; margin: 0 auto; padding: 16px 16px 40px; }
-  header.hero { background: linear-gradient(160deg, var(--red), var(--red-dark)); color: #fff;
-    padding: 28px 16px 22px; text-align: center; border-radius: 0 0 24px 24px; }
-  header.hero h1 { margin: 0; font-size: 26px; letter-spacing: .3px; }
-  header.hero p { margin: 6px 0 0; opacity: .9; font-size: 15px; }
-  h2 { font-size: 18px; margin: 22px 0 10px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin: 12px 0; }
-  .muted { color: var(--muted); font-size: 14px; }
-  .names { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
-  .name-btn { background: var(--card); border: 2px solid var(--line); border-radius: 14px; padding: 14px 10px;
-    font-size: 16px; font-weight: 600; text-align: center; cursor: pointer; color: var(--ink); }
-  .name-btn small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; margin-top: 2px; }
-  .name-btn:active { transform: scale(.98); }
-  button.primary, button.secondary, button.danger, button.ghost {
-    border: 0; border-radius: 12px; padding: 12px 16px; font-size: 16px; font-weight: 600; cursor: pointer; }
-  button.primary { background: var(--green); color: #fff; width: 100%; }
-  button.secondary { background: var(--green-soft); color: var(--green); }
-  button.danger { background: #fbe9e7; color: var(--red-dark); }
-  button.ghost { background: transparent; color: var(--muted); padding: 8px; font-weight: 500; }
-  button:disabled { opacity: .5; cursor: not-allowed; }
-  input, select, textarea { width: 100%; font: inherit; padding: 12px; border: 1.5px solid var(--line);
-    border-radius: 12px; background: #fff; color: var(--ink); margin: 6px 0 10px; }
-  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--green); }
-  input.pin { font-size: 24px; letter-spacing: 8px; text-align: center; }
-  label { font-size: 14px; font-weight: 600; }
-  .row { display: flex; gap: 8px; align-items: center; }
-  .row > * { flex: 1; }
-  .topbar { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px;
-    background: var(--red); color: #fff; }
-  .topbar b { font-size: 17px; }
-  .topbar button { background: rgba(255,255,255,.18); color: #fff; border: 0; border-radius: 10px; padding: 8px 12px; font-size: 14px; }
-  .tabs { display: flex; position: sticky; top: 0; background: var(--cream); border-bottom: 1px solid var(--line); z-index: 2; }
-  .tabs button { flex: 1; background: none; border: 0; padding: 12px 4px; font-size: 14px; color: var(--muted);
-    border-bottom: 3px solid transparent; cursor: pointer; }
-  .tabs button.on { color: var(--red); border-bottom-color: var(--red); font-weight: 700; }
-  ul.ideas { list-style: none; margin: 0; padding: 0; }
-  ul.ideas li { display: flex; gap: 10px; align-items: flex-start; padding: 12px 0; border-top: 1px solid var(--line); }
-  ul.ideas li:first-child { border-top: 0; }
-  ul.ideas .txt { flex: 1; word-break: break-word; }
-  ul.ideas a { color: var(--green); font-size: 14px; word-break: break-all; }
-  ul.ideas .by { display: block; font-size: 12px; color: var(--muted); }
-  .del { background: none; border: 0; color: var(--muted); font-size: 20px; line-height: 1; padding: 2px 6px; cursor: pointer; }
-  .reveal { text-align: center; padding: 28px 16px; background: linear-gradient(160deg, var(--green), #155236);
-    color: #fff; border: 0; cursor: pointer; }
-  .reveal .big { font-size: 30px; font-weight: 800; margin: 8px 0; }
-  .reveal .gift { font-size: 54px; }
-  .pill { display: inline-block; font-size: 12px; padding: 3px 8px; border-radius: 99px; font-weight: 600; }
-  .pill.ok { background: var(--green-soft); color: var(--green); }
-  .pill.wait { background: #fff3d6; color: #8a6200; }
-  .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--ink); color: #fff;
-    padding: 12px 18px; border-radius: 12px; font-size: 15px; max-width: calc(100% - 32px); z-index: 10;
-    box-shadow: 0 6px 20px rgba(0,0,0,.2); }
-  .toast.err { background: var(--red-dark); }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--cream); color: var(--ink); font: 16px/1.5 var(--sans); }
+  h1, h2, h3 { font-family: var(--serif); font-weight: 600; letter-spacing: -.01em; }
+  .wrap { max-width: 540px; margin: 0 auto; padding: 18px 16px calc(48px + env(safe-area-inset-bottom)); }
   .hidden { display: none !important; }
-  header.hero { padding-top: calc(28px + env(safe-area-inset-top)); }
-  .topbar { padding-top: calc(14px + env(safe-area-inset-top)); }
-  .wrap { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
-  .install { display: flex; gap: 10px; align-items: center; background: #fff; border: 2px dashed var(--gold);
-    border-radius: 14px; padding: 12px; margin: 0 0 14px; font-size: 14px; }
-  .install .txt { flex: 1; }
-  .install button.primary { width: auto; padding: 10px 14px; font-size: 14px; }
+  .muted { color: var(--muted); font-size: 14px; }
   .center { text-align: center; }
-  .spinner { width: 36px; height: 36px; border: 4px solid var(--line); border-top-color: var(--red);
-    border-radius: 50%; animation: spin 1s linear infinite; margin: 60px auto; }
+
+  /* ---------- En-tête ---------- */
+  .hero { position: relative; overflow: hidden; background: var(--fir); color: var(--cream);
+    padding: calc(30px + env(safe-area-inset-top)) 20px 30px; text-align: center; border-radius: 0 0 32px 32px; }
+  .hero::before { content: ""; position: absolute; inset: 0; opacity: .09;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='64' viewBox='0 0 56 64'%3E%3Cpath d='M28 8 L40 28 H33 L44 46 H12 L23 28 H16 Z' fill='none' stroke='%23f6f1e7' stroke-width='1.4'/%3E%3C/svg%3E"); }
+  .hero > * { position: relative; }
+  .hero img { width: 76px; height: 76px; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+  .hero h1 { margin: 14px 0 2px; font-size: 32px; }
+  .hero p { margin: 0; opacity: .85; }
+  .chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .chip { background: rgba(246,241,231,.12); border: 1px solid rgba(201,164,92,.5); color: var(--cream);
+    border-radius: 999px; padding: 5px 12px; font-size: 13px; }
+  .topbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px;
+    background: var(--fir); color: var(--cream); padding: calc(12px + env(safe-area-inset-top)) 16px 12px; }
+  .topbar .title { flex: 1; font-family: var(--serif); font-size: 19px; }
+  .topbar .title small { display: block; font-family: var(--sans); font-size: 12px; opacity: .7; }
+  .iconbtn { background: rgba(246,241,231,.12); color: var(--cream); border: 0; border-radius: 12px;
+    min-width: 40px; height: 40px; padding: 0 12px; font-size: 14px; cursor: pointer; }
+
+  /* ---------- Cartes & formulaires ---------- */
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; margin: 14px 0; }
+  .card h2 { margin: 0 0 4px; font-size: 20px; }
+  .card h2 + .muted { margin: 0 0 12px; }
+  .section-title { font-family: var(--serif); font-size: 22px; margin: 28px 4px 4px; }
+  label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-top: 6px; }
+  input, select, textarea { width: 100%; font: inherit; padding: 12px 14px; border: 1.5px solid var(--line);
+    border-radius: 14px; background: #fff; color: var(--ink); margin: 6px 0 10px; }
+  textarea { min-height: 110px; resize: vertical; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--fir-2); box-shadow: 0 0 0 3px var(--fir-soft); }
+  input.pin { font-size: 26px; letter-spacing: 10px; text-align: center; font-family: var(--serif); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 999px;
+    padding: 13px 20px; font: 600 15px var(--sans); cursor: pointer; text-decoration: none; }
+  .btn.block { width: 100%; }
+  .btn.primary { background: var(--fir); color: var(--cream); }
+  .btn.gold { background: var(--gold); color: #fff; }
+  .btn.soft { background: var(--fir-soft); color: var(--fir); }
+  .btn.danger { background: var(--danger-soft); color: var(--danger); }
+  .btn.ghost { background: transparent; color: var(--muted); font-weight: 500; }
+  .btn.small { padding: 8px 12px; font-size: 13px; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row > * { flex: 1; min-width: 0; }
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btns .btn { flex: 1; }
+
+  /* ---------- Choix du prénom ---------- */
+  .names { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .name-btn { display: flex; align-items: center; gap: 10px; text-align: left; background: var(--paper);
+    border: 1.5px solid var(--line); border-radius: 16px; padding: 12px; cursor: pointer; color: var(--ink); font: inherit; }
+  .name-btn:active { transform: scale(.98); }
+  .avatar { flex: 0 0 38px; height: 38px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--gold-soft); color: var(--gold-ink); font-family: var(--serif); font-weight: 600; font-size: 17px; }
+  .name-btn b { display: block; font-weight: 600; }
+  .name-btn small { color: var(--muted); font-size: 12px; }
+
+  /* ---------- Installation ---------- */
+  .install { background: var(--paper); border: 1.5px solid var(--gold); border-radius: var(--radius); padding: 16px; margin: 0 0 18px; }
+  .install h3 { margin: 0 0 4px; font-size: 18px; }
+  .steps { list-style: none; padding: 0; margin: 12px 0 0; counter-reset: s; }
+  .steps li { counter-increment: s; display: flex; gap: 12px; align-items: center; padding: 8px 0; font-size: 15px; }
+  .steps li::before { content: counter(s); flex: 0 0 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--fir); color: var(--cream); font: 600 14px var(--sans); }
+  .kbd { display: inline-flex; align-items: center; gap: 4px; background: var(--gold-soft); border-radius: 8px; padding: 2px 8px; font-weight: 600; white-space: nowrap; }
+  .kbd svg { width: 16px; height: 16px; }
+
+  /* ---------- Onglets ---------- */
+  .tabs { display: flex; background: var(--paper); border-bottom: 1px solid var(--line); position: sticky; top: calc(64px + env(safe-area-inset-top)); z-index: 4; }
+  .tabs button { flex: 1; background: none; border: 0; padding: 13px 4px 11px; font: 500 14px var(--sans); color: var(--muted);
+    border-bottom: 2.5px solid transparent; cursor: pointer; }
+  .tabs button.on { color: var(--fir); border-bottom-color: var(--gold); font-weight: 600; }
+
+  /* ---------- Idées ---------- */
+  ul.ideas { list-style: none; margin: 0; padding: 0; }
+  ul.ideas li { display: flex; gap: 10px; align-items: flex-start; padding: 13px 0; border-top: 1px solid var(--line); }
+  ul.ideas li:first-child { border-top: 0; padding-top: 4px; }
+  ul.ideas .txt { flex: 1; word-break: break-word; }
+  ul.ideas a { color: var(--fir-2); font-size: 14px; word-break: break-all; }
+  ul.ideas .by { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+  ul.ideas .for { display: inline-block; font-size: 12px; font-weight: 600; color: var(--gold-ink); background: var(--gold-soft);
+    border-radius: 6px; padding: 1px 7px; margin-bottom: 4px; }
+  .del { background: none; border: 0; color: var(--muted); font-size: 22px; line-height: 1; padding: 0 6px; cursor: pointer; }
+
+  /* ---------- Révélation ---------- */
+  .reveal { position: relative; overflow: hidden; text-align: center; padding: 34px 20px; background: var(--fir); color: var(--cream);
+    border: 0; border-radius: 24px; cursor: pointer; }
+  .reveal::after { content: ""; position: absolute; inset: 10px; border: 1px solid rgba(201,164,92,.45); border-radius: 16px; pointer-events: none; }
+  .reveal .star { color: var(--gold); font-size: 28px; }
+  .reveal .big { font-family: var(--serif); font-size: 38px; margin: 6px 0 4px; }
+  .countdown { display: flex; align-items: center; gap: 14px; background: var(--gold-soft); border-radius: 18px; padding: 14px 16px; margin: 14px 0; }
+  .countdown .n { font-family: var(--serif); font-size: 34px; color: var(--gold-ink); line-height: 1; }
+
+  /* ---------- Organisateur ---------- */
+  .person { padding: 14px 0; border-top: 1px solid var(--line); }
+  .person:first-child { border-top: 0; padding-top: 2px; }
+  .person .head { display: flex; align-items: center; gap: 10px; }
+  .person .head .n { flex: 1; font-weight: 600; }
+  .person .meta { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+  .pill { display: inline-block; font-size: 12px; padding: 3px 9px; border-radius: 999px; font-weight: 600; }
+  .pill.ok { background: var(--fir-soft); color: var(--fir); }
+  .pill.wait { background: var(--gold-soft); color: var(--gold-ink); }
+  .pill.warn { background: var(--danger-soft); color: var(--danger); }
+  .person .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .person select { margin: 0; padding: 9px 12px; font-size: 14px; }
+  .person .actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .qr { display: grid; place-items: center; background: #fff; border-radius: 16px; padding: 14px; margin: 6px auto 12px; width: 220px; }
+  .qr svg { width: 192px; height: 192px; display: block; }
+  .notice { background: var(--gold-soft); color: var(--gold-ink); border-radius: 14px; padding: 11px 14px; font-size: 14px; }
+  .switch { display: flex; align-items: center; gap: 12px; padding: 6px 0; cursor: pointer; font-weight: 500; color: var(--ink); font-size: 15px; }
+  .switch input { width: 46px; height: 28px; margin: 0; appearance: none; background: var(--line); border-radius: 999px; position: relative; border: 0; flex: 0 0 46px; cursor: pointer; }
+  .switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+  .switch input:checked { background: var(--fir-2); }
+  .switch input:checked::after { left: 21px; }
+
+  .bell { position: relative; }
+  .bell svg { width: 20px; height: 20px; vertical-align: middle; }
+  .badge { position: absolute; top: -5px; right: -5px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+    background: var(--gold); color: #1c2420; font: 700 12px/20px var(--sans); text-align: center; box-shadow: 0 0 0 2px var(--fir); }
+  .notif { display: flex; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); cursor: default; }
+  .notif:first-child { border-top: 0; padding-top: 4px; }
+  .notif .dot { flex: 0 0 9px; height: 9px; border-radius: 50%; background: transparent; margin-top: 7px; }
+  .notif.unread .dot { background: var(--gold); }
+  .notif .t { font-weight: 600; }
+  .notif .b { color: var(--ink); font-size: 15px; white-space: pre-line; word-break: break-word; }
+  .notif .w { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .notif.todo { cursor: pointer; }
+  .notif.todo .t { color: var(--gold-ink); }
+  .swatches { display: flex; gap: 7px; flex-wrap: wrap; margin: 8px 0 4px; }
+  .sw { width: 28px; height: 28px; border-radius: 50%; border: 2.5px solid var(--paper); box-shadow: 0 0 0 1.5px var(--line); cursor: pointer; padding: 0; }
+  .sw.on { box-shadow: 0 0 0 2.5px var(--ink); }
+  .sw.none { background: repeating-linear-gradient(45deg, #fff 0 4px, var(--line) 4px 6px); }
+  .avatar.click { cursor: pointer; }
+  .fam-group { margin: 18px 0 6px; display: flex; align-items: center; gap: 8px; font-family: var(--serif); font-size: 17px; }
+  .fam-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--line); flex: 0 0 12px; }
+  .fam-card { border: 1px solid var(--line); border-left: 6px solid var(--line); border-radius: 14px; padding: 12px 14px; margin: 10px 0; }
+  .fam-card .members { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .mchip { display: inline-flex; align-items: center; gap: 6px; background: var(--cream); border-radius: 999px; padding: 3px 10px 3px 3px; font-size: 13px; }
+  .mchip .avatar { flex: 0 0 22px; height: 22px; font-size: 11px; }
+  .rules { display: flex; gap: 12px; align-items: flex-start; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; }
+  .rules.ok { background: var(--fir-soft); color: var(--fir); }
+  .rules.ko { background: var(--danger-soft); color: var(--danger); }
+  .rules b { display: block; }
+  .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+    background: var(--ink); color: var(--cream); padding: 12px 18px; border-radius: 14px; font-size: 15px;
+    max-width: calc(100% - 32px); z-index: 20; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+  .toast.err { background: var(--danger); }
+  .spinner { width: 34px; height: 34px; border: 3px solid var(--line); border-top-color: var(--gold);
+    border-radius: 50%; animation: spin 1s linear infinite; margin: 80px auto; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .footer { text-align: center; margin-top: 30px; }
-  .notice { background: #fff3d6; border-radius: 12px; padding: 10px 12px; font-size: 14px; color: #6b4d00; }
-  .admin-person { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); }
-  .admin-person:first-child { border-top: 0; }
-  .admin-person .n { flex: 1; font-weight: 600; }
-  .admin-person button { padding: 6px 10px; font-size: 13px; }
-</style>
+  .footer { text-align: center; margin-top: 28px; }
+  /* Ordinateur : l'espace organisateur profite de la largeur (2 colonnes) */
+  @media (min-width: 900px) {
+    #admin .wrap { max-width: 1080px; }
+    .adm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; align-items: start; }
+  }</style>
 </head>
 <body>
 
 <div id="loading"><div class="spinner"></div></div>
 
-<!-- ========== ACCUEIL ========== -->
+<!-- ======================= ACCUEIL ======================= -->
 <section id="welcome" class="hidden">
   <header class="hero">
-    <h1>🎅 Secret Santa</h1>
-    <p>Qui es-tu ?</p>
+    <img src="icons/icon-192.png" alt="">
+    <h1>Santa Familia</h1>
+    <p>Notre Secret Santa en famille</p>
+    <div class="chips" id="eventChips"></div>
   </header>
   <div class="wrap">
-    <div id="installBox" class="install hidden">
-      <span style="font-size:28px">📲</span>
-      <div class="txt" id="installTxt"></div>
-      <button id="installBtn" class="primary hidden">Installer</button>
-      <button class="del" onclick="hideInstall()" title="Masquer">×</button>
-    </div>
     <p id="configError" class="notice hidden">⚠️ L'application n'est pas encore reliée à Google Sheets : renseigne l'adresse de l'API dans <code>config.js</code>.</p>
-    <div id="names" class="names"></div>
-    <p id="noNames" class="muted center hidden">L'organisateur n'a pas encore ajouté les participants.</p>
+
+    <!-- Installation -->
+    <div id="installBox" class="install hidden">
+      <div class="row" style="align-items:flex-start">
+        <div>
+          <h3>📲 Installe l'app en 10 secondes</h3>
+          <div class="muted" id="installIntro">Elle s'ouvrira comme une vraie application, depuis ton écran d'accueil.</div>
+        </div>
+        <button class="del" style="flex:0 0 auto" onclick="hideInstall()" title="Plus tard">×</button>
+      </div>
+      <ol class="steps" id="installSteps"></ol>
+      <button id="installBtn" class="btn gold block hidden" style="margin-top:10px">Installer Santa Familia</button>
+    </div>
+
+    <div id="pickBlock">
+      <h2 class="section-title" style="margin-top:6px">Qui es-tu ?</h2>
+      <p class="muted" style="margin:0 4px 12px">Touche ton prénom pour commencer.</p>
+      <div id="names"></div>
+      <p id="noNames" class="muted center hidden">L'organisateur n'a pas encore ajouté les participants.</p>
+    </div>
 
     <div id="authCard" class="card hidden">
-      <h2 id="authTitle" style="margin-top:0"></h2>
+      <div class="row" style="align-items:center;margin-bottom:6px">
+        <div class="avatar" id="authAvatar" style="flex:0 0 46px;height:46px;font-size:20px"></div>
+        <h2 id="authTitle" style="margin:0"></h2>
+      </div>
       <p id="authHelp" class="muted"></p>
       <label for="pin1">Ton code secret (4 à 6 chiffres)</label>
       <input id="pin1" class="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off">
-      <div id="pin2Wrap">
+      <div id="createOnly">
         <label for="pin2">Confirme ton code</label>
         <input id="pin2" class="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off">
       </div>
-      <button id="authBtn" class="primary"></button>
-      <button class="ghost" onclick="cancelAuth()">← Choisir un autre nom</button>
+      <button id="authBtn" class="btn primary block"></button>
+      <button class="btn ghost block" onclick="cancelAuth()">← Ce n'est pas moi</button>
     </div>
 
-    <div class="footer"><button class="ghost" onclick="openAdmin()">🔧 Espace organisateur</button></div>
+    <div class="footer"><button class="btn ghost" onclick="openAdmin()">⚙︎ Espace organisateur</button></div>
   </div>
 </section>
 
-<!-- ========== APPLICATION ========== -->
+<!-- ======================= APPLICATION ======================= -->
 <section id="app" class="hidden">
-  <div class="topbar"><b id="hello"></b><button onclick="doLogout()">Déconnexion</button></div>
+  <div class="topbar">
+    <div class="avatar" id="meAvatar"></div>
+    <div class="title"><span id="hello"></span><small>Santa Familia</small></div>
+    <button class="iconbtn bell" onclick="openNotifs()" title="Notifications" aria-label="Notifications">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      <span id="bellBadge" class="badge hidden"></span>
+    </button>
+    <button class="iconbtn" onclick="openProfile()" title="Mon profil">⋯</button>
+  </div>
   <nav class="tabs">
     <button data-tab="draw" class="on">🎁 Mon tirage</button>
-    <button data-tab="wishes">📝 Ma liste</button>
-    <button data-tab="others">💡 Pour les autres</button>
+    <button data-tab="wishes">Ma liste</button>
+    <button data-tab="others">Pour les autres</button>
   </nav>
   <div class="wrap">
+    <div id="countdown" class="countdown hidden">
+      <div class="n" id="cdN"></div>
+      <div><b id="cdLabel"></b><div class="muted" id="cdSub"></div></div>
+    </div>
 
     <!-- Tirage -->
     <div id="tab-draw">
       <div id="drawWaiting" class="card center">
-        <div style="font-size:48px">⏳</div>
-        <h2 style="margin-top:6px">Le tirage n'a pas encore eu lieu</h2>
-        <p class="muted">En attendant, complète ta liste d'envies et propose des idées pour les autres !</p>
+        <div style="font-size:42px;color:var(--gold)">✦</div>
+        <h2>Le tirage n'a pas encore eu lieu</h2>
+        <p class="muted">En attendant, complète ta liste d'envies et propose des idées pour les autres.</p>
+        <div class="btns" style="margin-top:14px">
+          <button class="btn soft" onclick="setTab('wishes')">Ma liste</button>
+          <button class="btn soft" onclick="setTab('others')">Idées pour les autres</button>
+        </div>
       </div>
       <div id="drawDone" class="hidden">
-        <div id="revealCard" class="card reveal" onclick="toggleReveal()">
-          <div class="gift">🎁</div>
+        <div id="revealCard" class="reveal" onclick="toggleReveal()">
+          <div class="star">✦</div>
           <div id="revealHidden">Touche pour découvrir<br>à qui tu offres un cadeau</div>
-          <div id="revealShown" class="hidden">Tu offres un cadeau à<div class="big" id="targetName"></div><small>(touche pour masquer)</small></div>
+          <div id="revealShown" class="hidden">Tu offres un cadeau à<div class="big" id="targetName"></div><small style="opacity:.7">touche pour masquer</small></div>
         </div>
         <div id="targetIdeas" class="hidden">
           <div class="card">
-            <h2 style="margin-top:0">📝 Sa liste d'envies</h2>
+            <h2>Sa liste d'envies</h2>
+            <p class="muted">Ce que <span class="tname"></span> aimerait recevoir.</p>
             <ul id="targetOwn" class="ideas"></ul>
           </div>
           <div class="card">
-            <h2 style="margin-top:0">💡 Idées des autres participants</h2>
-            <p class="muted" style="margin-top:-4px">Ces idées sont secrètes : <span class="tname"></span> ne les voit pas.</p>
+            <h2>Idées des autres</h2>
+            <p class="muted">Secrètes : <span class="tname"></span> ne les voit pas.</p>
             <ul id="targetOthers" class="ideas"></ul>
           </div>
         </div>
@@ -173,16 +302,16 @@
     <!-- Ma liste -->
     <div id="tab-wishes" class="hidden">
       <div class="card">
-        <h2 style="margin-top:0">Ajouter une envie</h2>
+        <h2>Ajouter une envie</h2>
+        <p class="muted">Seul ton Secret Santa verra ta liste.</p>
         <form onsubmit="addWish(event)">
           <input id="wishText" placeholder="Ex : un livre de cuisine italienne" maxlength="300">
           <input id="wishLink" type="url" placeholder="Lien (facultatif)">
-          <button class="primary">Ajouter</button>
+          <button class="btn primary block">Ajouter</button>
         </form>
       </div>
       <div class="card">
-        <h2 style="margin-top:0">Ma liste</h2>
-        <p class="muted" style="margin-top:-4px">Seul ton Secret Santa verra cette liste.</p>
+        <h2>Ma liste</h2>
         <ul id="myWishes" class="ideas"></ul>
       </div>
     </div>
@@ -190,69 +319,156 @@
     <!-- Pour les autres -->
     <div id="tab-others" class="hidden">
       <div class="card">
-        <h2 style="margin-top:0">Proposer une idée</h2>
-        <p class="muted" style="margin-top:-4px">La personne ne la verra jamais : seul son Secret Santa y aura accès.</p>
+        <h2>Proposer une idée</h2>
+        <p class="muted">La personne ne la verra jamais : seul son Secret Santa y aura accès.</p>
         <form onsubmit="addOther(event)">
           <label for="otherFor">Pour qui ?</label>
           <select id="otherFor"></select>
           <input id="otherText" placeholder="Ex : elle adore les plantes grasses" maxlength="300">
           <input id="otherLink" type="url" placeholder="Lien (facultatif)">
-          <button class="primary">Proposer</button>
+          <button class="btn primary block">Proposer</button>
         </form>
       </div>
       <div class="card">
-        <h2 style="margin-top:0">Mes idées pour les autres</h2>
+        <h2>Mes idées pour les autres</h2>
         <ul id="myOthers" class="ideas"></ul>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ========== ORGANISATEUR ========== -->
+<!-- ======================= PROFIL ======================= -->
+<section id="profile" class="hidden">
+  <div class="topbar"><div class="title">Menu</div><button class="iconbtn" onclick="closeProfile()">Fermer</button></div>
+  <div class="wrap">
+    <div class="card">
+      <h2>Partager l'app</h2>
+      <p class="muted">Envoie le lien à un participant qui ne l'a pas encore.</p>
+      <button class="btn soft block" onclick="shareApp()">Partager le lien</button>
+    </div>
+    <button class="btn danger block" onclick="doLogout()">Se déconnecter</button>
+  </div>
+</section>
+
+<!-- ======================= NOTIFICATIONS ======================= -->
+<section id="notifs" class="hidden">
+  <div class="topbar"><div class="title">Notifications</div><button class="iconbtn" onclick="closeNotifs()">Fermer</button></div>
+  <div class="wrap">
+    <div id="notifTodos" class="card hidden"><h2>À faire</h2><div id="notifTodoList"></div></div>
+    <div class="card"><div id="notifList"></div></div>
+  </div>
+</section>
+
+<!-- ======================= ORGANISATEUR ======================= -->
 <section id="admin" class="hidden">
-  <div class="topbar"><b>🔧 Organisateur</b><button onclick="closeAdmin()">Fermer</button></div>
+  <div class="topbar"><div class="title">Espace organisateur</div><button class="iconbtn" onclick="closeAdmin()">Fermer</button></div>
   <div class="wrap">
     <div id="adminLogin" class="card">
+      <h2>Accès organisateur</h2>
       <label for="adminCode">Code organisateur</label>
       <input id="adminCode" type="password" autocomplete="off">
-      <button class="primary" onclick="adminLogin()">Entrer</button>
+      <button class="btn primary block" onclick="adminLogin()">Entrer</button>
     </div>
 
     <div id="adminPanel" class="hidden">
-      <p id="defaultCodeWarn" class="notice hidden">⚠️ Ton code organisateur est court : choisis-en un d'au moins 6 caractères (propriété <code>ADMIN_CODE</code> dans Apps Script).</p>
+      <p id="weakCodeWarn" class="notice hidden">⚠️ Ton code organisateur est court : choisis-en un d'au moins 6 caractères (propriété <code>ADMIN_CODE</code> dans Apps Script).</p>
 
-      <h2>👥 Participants <span id="regCount" class="muted"></span></h2>
-      <div class="card">
-        <div id="adminPeople"></div>
-        <form class="row" style="margin-top:10px" onsubmit="adminAdd(event)">
-          <input id="newName" placeholder="Prénom" maxlength="40" style="margin:0">
-          <button class="secondary" style="flex:0 0 auto">Ajouter</button>
-        </form>
+      <div class="adm-grid"><div>
+      <!-- Inviter -->
+      <h2 class="section-title">Inviter</h2>
+      <div class="card center">
+        <p class="muted" style="margin-top:0">À scanner avec l'appareil photo du téléphone.</p>
+        <div class="qr" id="qrBox"></div>
+        <div class="btns">
+          <button class="btn primary" onclick="shareApp()">Partager le lien</button>
+          <a class="btn soft" id="qrDownload" download="santa-familia-qr.gif">Télécharger le QR</a>
+        </div>
+        <p class="muted" style="margin-bottom:0">Astuce : chaque participant a aussi son <b>lien perso</b> (bouton « 🔗 Lien perso » dans la liste des participants) : son prénom y est déjà choisi.</p>
       </div>
 
-      <h2>🚫 Exclusions</h2>
+      <!-- Participants -->
+      <h2 class="section-title">Participants <span id="regCount" class="muted" style="font-family:var(--sans)"></span></h2>
       <div class="card">
-        <p class="muted" style="margin-top:0">Ces deux personnes ne pourront pas se tirer mutuellement (ex. un couple).</p>
-        <div class="row"><select id="exA"></select><select id="exB"></select></div>
-        <button class="secondary" style="width:100%" onclick="adminAddEx()">Ajouter l'exclusion</button>
+        <div id="adminPeople"></div>
+        <form style="margin-top:12px;border-top:1px solid var(--line);padding-top:14px" onsubmit="adminAdd(event)">
+          <label for="newName">Ajouter un participant</label>
+          <input id="newName" placeholder="Prénom" maxlength="40">
+          <input id="newFamily" placeholder="Famille (facultatif)" list="familyList" maxlength="40">
+          <button class="btn soft block">Ajouter</button>
+        </form>
+        <datalist id="familyList"></datalist>
+      </div>
+
+      </div><div>
+      <!-- Familles & exclusions -->
+      <h2 class="section-title">Familles & exclusions</h2>
+      <div class="card">
+        <div id="rulesStatus" class="rules"></div>
+        <h3 style="font-size:17px;margin:4px 0 4px">🏠 Familles</h3>
+        <p class="muted" style="margin-top:0">Les membres d'une <b>même famille</b> ne se tirent jamais entre eux. Choisis la famille de chacun dans la liste des participants, puis donne une couleur à chaque famille.</p>
+        <div id="familySummary"></div>
+        <h3 style="font-size:17px;margin:20px 0 4px">🚫 Exclusions</h3>
+        <p class="muted" style="margin-top:0">Pour aller plus loin : entre deux personnes, entre une personne et toute une famille, ou entre deux familles.</p>
+        <div class="row"><select id="exA"></select><span style="flex:0 0 auto;color:var(--muted)">⇄</span><select id="exB"></select></div>
+        <button class="btn soft block" onclick="adminAddEx()">Ajouter la règle</button>
         <ul id="exList" class="ideas" style="margin-top:8px"></ul>
       </div>
 
-      <h2>🎲 Tirage au sort</h2>
+      <!-- Événement -->
+      <h2 class="section-title">Événement</h2>
+      <div class="card">
+        <div class="row">
+          <div><label for="setDate">Date de l'échange</label><input id="setDate" type="date"></div>
+          <div><label for="setBudget">Budget</label><input id="setBudget" placeholder="ex. 30 €" maxlength="30"></div>
+        </div>
+        <p class="muted" style="margin-top:0">Affichés sur l'accueil, avec un compte à rebours dans les notifications la dernière semaine.</p>
+        <button class="btn primary block" onclick="adminSaveSettings(this)">Enregistrer</button>
+      </div>
+
+      <!-- Notifications -->
+      <h2 class="section-title">Notifications</h2>
+      <div class="card">
+        <h2>Message à tous</h2>
+        <p class="muted">Apparaît dans la cloche 🔔 de chaque participant.</p>
+        <input id="bcSubject" placeholder="Titre (ex. Rendez-vous le 24)" maxlength="80">
+        <textarea id="bcMessage" placeholder="Ton message…" maxlength="1000"></textarea>
+        <div class="btns">
+          <button class="btn primary" onclick="adminBroadcast(this)">Publier dans l'app</button>
+          <button class="btn soft" onclick="broadcastWhatsApp()">Aussi sur WhatsApp</button>
+        </div>
+        <div id="lastMessages" style="margin-top:12px"></div>
+      </div>
+      <div class="card">
+        <h2>Automatiques</h2>
+        <p class="muted" style="margin:0">Chaque participant voit aussi dans sa cloche :</p>
+        <ul class="muted" style="margin:8px 0 0;padding-left:20px">
+          <li>ses <b>tâches à faire</b> (liste vide, aucune idée pour les autres) tant qu'elles ne sont pas faites ;</li>
+          <li>l'<b>annonce du tirage</b> ;</li>
+          <li>les <b>nouvelles idées</b> pour sa personne secrète (sans dévoiler qui) ;</li>
+          <li>le <b>compte à rebours</b> la dernière semaine.</li>
+        </ul>
+        <p class="muted" style="margin-bottom:0">Pour relancer les retardataires (pastilles orange ci-dessus) hors de l'app : bouton « 🔗 Lien perso » → WhatsApp.</p>
+      </div>
+
+      <!-- Tirage -->
+      <h2 class="section-title">Tirage au sort</h2>
       <div class="card">
         <p id="drawStatus" class="muted" style="margin-top:0"></p>
-        <button id="drawBtn" class="primary" onclick="adminDraw()">Lancer le tirage</button>
-        <button id="resetDrawBtn" class="danger hidden" style="width:100%" onclick="adminResetDraw()">Annuler le tirage</button>
+        <button id="drawBtn" class="btn gold block" onclick="adminDraw()">Lancer le tirage</button>
+        <button id="resetDrawBtn" class="btn danger block hidden" onclick="adminResetDraw()">Annuler le tirage</button>
       </div>
+      </div></div>
     </div>
   </div>
 </section>
 
 <div id="toast" class="toast hidden"></div>
 
+<script src="vendor/qrcode.js"></script>
 <script>
-/* ---------- Appels serveur ---------- */
+/* ================== Appels serveur ================== */
 const API_URL = window.SECRET_SANTA_API_URL || '';
+const APP_URL = location.origin + location.pathname.replace(/index\.html$/, '');
 async function api(fn) {
   const args = Array.prototype.slice.call(arguments, 1);
   if (!/^https:\/\//.test(API_URL)) throw new Error('API non configurée (config.js).');
@@ -268,14 +484,12 @@ async function api(fn) {
 }
 function errMsg(e) { return (e && e.message ? e.message : String(e)).replace(/^(Exception|Error):\s*/, ''); }
 
-/* ---------- Stockage local (session) ---------- */
+/* ================== Utilitaires ================== */
 const store = {
   get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
   set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
   del(k) { try { localStorage.removeItem(k); } catch (e) {} },
 };
-
-/* ---------- Petits utilitaires ---------- */
 const $ = id => document.getElementById(id);
 function el(tag, props, children) {
   const n = document.createElement(tag);
@@ -283,11 +497,35 @@ function el(tag, props, children) {
   (children || []).forEach(c => n.append(c));
   return n;
 }
-function show(id) { ['loading', 'welcome', 'app', 'admin'].forEach(s => $(s).classList.toggle('hidden', s !== id)); window.scrollTo(0, 0); }
+const initial = n => (n || '?').trim().charAt(0).toUpperCase();
+const PALETTE = ['#1f3a2e', '#3f7a5c', '#c9a45c', '#a4452f', '#7a3b5e', '#3b5b86', '#5f8fa8', '#b8743a', '#6b6f3a', '#5a5f66'];
+function avatar(name, color, cls) {
+  const a = el('span', { className: 'avatar' + (cls ? ' ' + cls : ''), textContent: initial(name) });
+  paintAvatar(a, color);
+  return a;
+}
+function paintAvatar(a, color) {
+  a.style.background = color || '';
+  a.style.color = color ? '#fff' : '';
+}
+function swatches(current, onPick, defaultLabel) {
+  const box = el('div', { className: 'swatches' });
+  box.append(el('button', { type: 'button', className: 'sw none' + (!current ? ' on' : ''), title: defaultLabel || 'Par défaut', onclick: () => onPick('') }));
+  PALETTE.forEach(c => {
+    const b = el('button', { type: 'button', className: 'sw' + (current === c ? ' on' : ''), title: c, onclick: () => onPick(c) });
+    b.style.background = c;
+    box.append(b);
+  });
+  return box;
+}
+function show(id) {
+  ['loading', 'welcome', 'app', 'profile', 'notifs', 'admin'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+  window.scrollTo(0, 0);
+}
 let toastTimer;
 function toast(msg, isErr) {
   const t = $('toast'); t.textContent = msg; t.className = 'toast' + (isErr ? ' err' : '');
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add('hidden'), 3200);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add('hidden'), 3400);
 }
 async function busy(btn, fn) {
   if (btn) btn.disabled = true;
@@ -299,55 +537,158 @@ async function busy(btn, fn) {
   }
   finally { if (btn) btn.disabled = false; }
 }
+function formatDate(d) {
+  if (!d) return '';
+  const p = d.split('-').map(Number);
+  return new Date(p[0], p[1] - 1, p[2]).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+}
+function daysUntil(d) {
+  if (!d) return null;
+  const p = d.split('-').map(Number), t = new Date();
+  return Math.round((new Date(p[0], p[1] - 1, p[2]) - new Date(t.getFullYear(), t.getMonth(), t.getDate())) / 86400000);
+}
 
-/* ---------- Rendu d'une liste d'idées ---------- */
+/* ================== Partage ================== */
+function inviteText(name) {
+  return name
+    ? '🎄 ' + name + ', voici ton lien perso pour notre Secret Santa « Santa Familia » : crée ton code et ajoute tes idées de cadeaux 🎁'
+    : '🎄 Rejoins notre Secret Santa « Santa Familia » ! Choisis ton prénom, crée ton code et ajoute tes idées de cadeaux 🎁';
+}
+async function share(text, url) {
+  if (navigator.share) {
+    try { await navigator.share({ title: 'Santa Familia', text: text, url: url }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  window.open('https://wa.me/?text=' + encodeURIComponent(text + '\n' + url), '_blank', 'noopener');
+}
+function shareApp() { share(inviteText(), APP_URL); }
+function personalLink(name) { return APP_URL + '?p=' + encodeURIComponent(name); }
+
+/* ================== Installation ================== */
+let deferredPrompt = null;
+const ua = navigator.userAgent;
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+const isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isIOSOtherBrowser = isIOS && /CriOS|FxiOS|EdgiOS|OPiOS/i.test(ua);
+const isAndroid = /android/i.test(ua);
+const shareIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
+const plusIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
+function hideInstall() { $('installBox').classList.add('hidden'); store.set('ss_install_hidden', String(Date.now())); }
+function installDismissed() { const t = Number(store.get('ss_install_hidden') || 0); return Date.now() - t < 3 * 86400000; }
+function setInstallSteps(items) { $('installSteps').innerHTML = items.map(s => '<li><span>' + s + '</span></li>').join(''); }
+function setupInstall() {
+  if (isStandalone() || installDismissed()) return;
+  if (isIOSOtherBrowser) {
+    $('installIntro').textContent = 'Sur iPhone, l\'installation se fait depuis Safari.';
+    setInstallSteps(['Copie le lien de cette page', 'Ouvre-le dans <span class="kbd">Safari</span>', 'Suis les 2 étapes affichées']);
+  } else if (isIOS) {
+    setInstallSteps([
+      'Touche <span class="kbd">' + shareIcon + ' Partager</span> en bas de Safari',
+      'Choisis <span class="kbd">' + plusIcon + ' Sur l\'écran d\'accueil</span>',
+      'Touche <span class="kbd">Ajouter</span>, c\'est prêt !',
+    ]);
+  } else if (isAndroid) {
+    setInstallSteps(['Ouvre le menu <span class="kbd">⋮</span> de Chrome', 'Choisis <span class="kbd">Installer l\'application</span>']);
+  } else {
+    $('installIntro').textContent = 'Ouvre ce lien sur ton téléphone pour installer l\'app. Sur ordinateur, elle fonctionne aussi directement ici.';
+    setInstallSteps(['Ouvre ce lien sur ton téléphone', 'Suis les étapes affichées']);
+  }
+  $('installBox').classList.remove('hidden');
+}
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt = e;
+  if (isStandalone() || installDismissed()) return;
+  $('installIntro').textContent = 'Un seul bouton, et elle sera sur ton écran d\'accueil.';
+  $('installSteps').innerHTML = '';
+  $('installBtn').classList.remove('hidden');
+  $('installBox').classList.remove('hidden');
+});
+$('installBtn').onclick = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null; $('installBox').classList.add('hidden');
+};
+window.addEventListener('appinstalled', () => { $('installBox').classList.add('hidden'); toast('App installée 🎄'); });
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+/* ================== Rendu d'une liste d'idées ================== */
 function ideaList(ul, ideas, opts) {
   ul.innerHTML = '';
   if (!ideas.length) { ul.append(el('li', { className: 'muted', textContent: opts.empty })); return; }
   ideas.forEach(i => {
-    const txt = el('div', { className: 'txt' }, [document.createTextNode(i.text)]);
+    const txt = el('div', { className: 'txt' });
+    if (opts.showFor) txt.append(el('span', { className: 'for', textContent: 'Pour ' + i.forName }), el('br'));
+    txt.append(document.createTextNode(i.text));
     if (i.link && /^https?:\/\//i.test(i.link)) {
-      txt.append(el('br'), el('a', { href: i.link, target: '_blank', rel: 'noopener noreferrer', textContent: '🔗 ' + i.link }));
+      txt.append(el('br'), el('a', { href: i.link, target: '_blank', rel: 'noopener noreferrer', textContent: '↗ ' + i.link.replace(/^https?:\/\/(www\.)?/, '').slice(0, 60) }));
     }
-    if (opts.showFor) txt.prepend(el('span', { className: 'by', textContent: 'Pour ' + i.forName }));
     if (opts.showBy) txt.append(el('span', { className: 'by', textContent: 'Proposé par ' + i.author }));
     const li = el('li', {}, [txt]);
-    if (opts.deletable) {
-      li.append(el('button', { className: 'del', title: 'Supprimer', textContent: '×', onclick: () => removeIdea(i.id) }));
-    }
+    if (opts.deletable) li.append(el('button', { className: 'del', title: 'Supprimer', textContent: '×', onclick: () => removeIdea(i.id) }));
     ul.append(li);
   });
 }
 
-/* ========== ACCUEIL ========== */
+/* ================== ACCUEIL ================== */
 let picked = null;
+let publicState = null;
+let wantedName = new URLSearchParams(location.search).get('p');
+
+function renderEventChips(ev) {
+  const box = $('eventChips'); box.innerHTML = '';
+  if (ev && ev.date) box.append(el('span', { className: 'chip', textContent: '📅 ' + formatDate(ev.date) }));
+  if (ev && ev.budget) box.append(el('span', { className: 'chip', textContent: '💶 ' + ev.budget }));
+}
 async function loadWelcome() {
   show('loading');
   const st = await busy(null, () => api('getPublicState'));
-  if (!st) return;
+  if (!st) return show('welcome');
+  publicState = st;
+  renderEventChips(st.event);
   const box = $('names'); box.innerHTML = '';
-  st.participants.forEach(p => {
-    box.append(el('button', {
-      className: 'name-btn',
-      onclick: () => pickName(p),
-    }, [document.createTextNode(p.name), el('small', { textContent: p.claimed ? 'Se connecter' : 'Créer mon compte' })]));
+  const families = Array.from(new Set(st.participants.map(p => p.family).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'fr'));
+  const groups = families.map(f => ({ name: f, people: st.participants.filter(p => p.family === f) }));
+  const others = st.participants.filter(p => !p.family);
+  if (others.length) groups.push({ name: families.length ? 'Autres' : '', people: others });
+  groups.forEach(g => {
+    if (g.name) {
+      const dot = el('span', { className: 'fam-dot' });
+      const famColor = (st.familyColors || {})[g.name];
+      if (famColor) dot.style.background = famColor;
+      box.append(el('div', { className: 'fam-group' }, [dot, document.createTextNode(g.name === 'Autres' ? g.name : '🏠 ' + g.name)]));
+    }
+    const grid = el('div', { className: 'names' });
+    g.people.forEach(p => grid.append(el('button', { className: 'name-btn', onclick: () => pickName(p) }, [
+      avatar(p.name, p.color),
+      el('span', {}, [el('b', { textContent: p.name }), el('small', { textContent: p.claimed ? 'Se connecter' : 'Créer mon compte' })]),
+    ])));
+    box.append(grid);
   });
   $('noNames').classList.toggle('hidden', st.participants.length > 0);
   cancelAuth();
   show('welcome');
+  const w = wantedName && st.participants.find(p => p.name === wantedName);
+  wantedName = null; // le lien perso ne sert qu'une fois
+  if (location.search) history.replaceState(null, '', APP_URL);
+  if (w) pickName(w);
 }
 function pickName(p) {
   picked = p;
-  $('names').classList.add('hidden');
+  $('pickBlock').classList.add('hidden');
   $('authCard').classList.remove('hidden');
   $('pin1').value = ''; $('pin2').value = '';
-  $('pin2Wrap').classList.toggle('hidden', p.claimed);
-  $('authTitle').textContent = (p.claimed ? 'Bon retour ' : 'Bienvenue ') + p.name + ' !';
+  $('createOnly').classList.toggle('hidden', p.claimed);
+  $('authAvatar').textContent = initial(p.name);
+  paintAvatar($('authAvatar'), p.color);
+  $('authTitle').textContent = (p.claimed ? 'Bon retour, ' : 'Bienvenue, ') + p.name;
   $('authHelp').textContent = p.claimed ? 'Entre ton code secret.' : 'Choisis un code secret : il te servira à te reconnecter. Ne le partage pas !';
   $('authBtn').textContent = p.claimed ? 'Se connecter' : 'Créer mon compte';
-  setTimeout(() => $('pin1').focus(), 50);
+  setTimeout(() => $('pin1').focus(), 60);
 }
-function cancelAuth() { picked = null; $('names').classList.remove('hidden'); $('authCard').classList.add('hidden'); }
+function cancelAuth() { picked = null; $('pickBlock').classList.remove('hidden'); $('authCard').classList.add('hidden'); }
 $('authBtn').onclick = () => busy($('authBtn'), async () => {
   const pin = $('pin1').value.trim();
   if (!/^\d{4,6}$/.test(pin)) throw new Error('Le code doit contenir 4 à 6 chiffres.');
@@ -357,19 +698,31 @@ $('authBtn').onclick = () => busy($('authBtn'), async () => {
     if (pin !== $('pin2').value.trim()) throw new Error('Les deux codes ne correspondent pas.');
     res = await api('register', picked.name, pin);
   }
-  store.set('ss_token', res.token);
+  store.set('ss_token', res.token); store.set('ss_name', res.name);
   await loadApp();
 });
 $('pin1').addEventListener('keydown', e => { if (e.key === 'Enter' && picked && picked.claimed) $('authBtn').click(); });
 
-/* ========== APPLICATION ========== */
+/* ================== APPLICATION ================== */
 let data = null;
 async function loadApp(keepTab) {
   if (!keepTab) show('loading');
   const d = await busy(null, () => api('getDashboard', store.get('ss_token')));
   if (!d) return;
   data = d;
-  $('hello').textContent = 'Salut ' + d.me + ' 👋';
+  $('hello').textContent = 'Bonjour ' + d.me;
+  renderBell(d.notifications);
+  $('meAvatar').textContent = initial(d.me);
+  paintAvatar($('meAvatar'), d.color);
+
+  // Compte à rebours
+  const days = daysUntil(d.event.date);
+  $('countdown').classList.toggle('hidden', days === null || days < 0);
+  if (days !== null && days >= 0) {
+    $('cdN').textContent = days === 0 ? '🎁' : days;
+    $('cdLabel').textContent = days === 0 ? 'C\'est aujourd\'hui !' : (days === 1 ? 'jour avant l\'échange' : 'jours avant l\'échange');
+    $('cdSub').textContent = formatDate(d.event.date) + (d.event.budget ? ' · budget ' + d.event.budget : '');
+  }
 
   // Tirage
   $('drawWaiting').classList.toggle('hidden', !!d.target);
@@ -381,10 +734,7 @@ async function loadApp(keepTab) {
     ideaList($('targetOthers'), d.target.ideas.filter(i => i.author !== d.target.name), { empty: 'Pas encore d\'idée proposée.', showBy: true });
   }
 
-  // Ma liste
   ideaList($('myWishes'), d.myWishes, { empty: 'Ta liste est vide. Ajoute ta première envie !', deletable: true });
-
-  // Pour les autres
   const sel = $('otherFor'); const prev = sel.value; sel.innerHTML = '';
   d.participants.forEach(n => sel.append(el('option', { value: n, textContent: n })));
   if (d.participants.includes(prev)) sel.value = prev;
@@ -404,8 +754,7 @@ function toggleReveal() {
 }
 function addWish(e) {
   e.preventDefault();
-  const btn = e.submitter;
-  busy(btn, async () => {
+  busy(e.submitter, async () => {
     await api('addIdea', store.get('ss_token'), data.me, $('wishText').value, $('wishLink').value);
     $('wishText').value = ''; $('wishLink').value = '';
     toast('Envie ajoutée ✨');
@@ -414,8 +763,7 @@ function addWish(e) {
 }
 function addOther(e) {
   e.preventDefault();
-  const btn = e.submitter;
-  busy(btn, async () => {
+  busy(e.submitter, async () => {
     await api('addIdea', store.get('ss_token'), $('otherFor').value, $('otherText').value, $('otherLink').value);
     $('otherText').value = ''; $('otherLink').value = '';
     toast('Idée proposée 💡');
@@ -426,16 +774,86 @@ function removeIdea(id) {
   if (!confirm('Supprimer cette idée ?')) return;
   busy(null, async () => { await api('deleteIdea', store.get('ss_token'), id); await loadApp(true); });
 }
+
+/* ---------- Profil ---------- */
+function openProfile() { show('profile'); }
+function closeProfile() { show('app'); }
+
+/* ---------- Notifications (cloche) ---------- */
+function timeAgo(ms) {
+  const m = Math.round((Date.now() - ms) / 60000);
+  if (m < 1) return 'à l\'instant';
+  if (m < 60) return 'il y a ' + m + ' min';
+  const h = Math.round(m / 60);
+  if (h < 24) return 'il y a ' + h + ' h';
+  const d = Math.round(h / 24);
+  return d === 1 ? 'hier' : (d < 7 ? 'il y a ' + d + ' jours' : new Date(ms).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
+}
+function renderBell(n) {
+  const b = $('bellBadge');
+  b.textContent = n.unread > 9 ? '9+' : n.unread;
+  b.classList.toggle('hidden', !n.unread);
+  // Pastille sur l'icône de l'app installée (si le téléphone le permet).
+  try { if (navigator.setAppBadge) n.unread ? navigator.setAppBadge(n.unread) : navigator.clearAppBadge(); } catch (e) {}
+}
+function notifRow(n, onClick) {
+  const row = el('div', { className: 'notif ' + n.kind + (n.unread ? ' unread' : '') }, [
+    el('span', { className: 'dot' }),
+    el('div', { style: 'flex:1' }, [
+      el('div', { className: 't', textContent: n.title }),
+      el('div', { className: 'b', textContent: n.body }),
+      n.created ? el('div', { className: 'w', textContent: timeAgo(n.created) }) : document.createTextNode(''),
+    ]),
+  ]);
+  if (onClick) row.onclick = onClick;
+  return row;
+}
+function openNotifs() {
+  const n = data.notifications;
+  $('notifTodos').classList.toggle('hidden', !n.todos.length);
+  const tl = $('notifTodoList'); tl.innerHTML = '';
+  n.todos.forEach(t => tl.append(notifRow(t, () => { show('app'); setTab(t.tab); })));
+  const list = $('notifList'); list.innerHTML = '';
+  const all = n.info.concat(n.items);
+  if (!all.length) list.append(el('p', { className: 'muted center', textContent: 'Aucune notification pour le moment 🌲' }));
+  all.forEach(x => list.append(notifRow(x)));
+  show('notifs');
+  if (n.items.some(i => i.unread)) {
+    api('markNotificationsRead', store.get('ss_token')).catch(() => {});
+    n.items.forEach(i => { i.unread = false; });
+    n.unread = n.todos.length;
+    renderBell(n);
+  }
+}
+function closeNotifs() { show('app'); }
+// Rafraîchit la cloche toutes les minutes quand l'app est ouverte.
+setInterval(() => {
+  if (document.visibilityState === 'visible' && data && !$('app').classList.contains('hidden')) loadApp(true);
+}, 60000);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && data && !$('app').classList.contains('hidden')) loadApp(true);
+});
+
 async function doLogout() {
   const t = store.get('ss_token');
   logoutLocal();
   try { await api('logout', t); } catch (e) {}
 }
-function logoutLocal() { store.del('ss_token'); data = null; return loadWelcome(); }
+function logoutLocal() {
+  store.del('ss_token'); store.del('ss_name'); data = null;
+  try { if (navigator.clearAppBadge) navigator.clearAppBadge(); } catch (e) {}
+  return loadWelcome();
+}
 
-/* ========== ORGANISATEUR ========== */
+/* ================== ORGANISATEUR ================== */
 let adminCode = null;
-function openAdmin() { show('admin'); $('adminLogin').classList.toggle('hidden', !!adminCode); $('adminPanel').classList.toggle('hidden', !adminCode); if (adminCode) adminRefresh(); }
+let adminSt = null;
+function openAdmin() {
+  show('admin');
+  $('adminLogin').classList.toggle('hidden', !!adminCode);
+  $('adminPanel').classList.toggle('hidden', !adminCode);
+  if (adminCode) adminRefresh();
+}
 function closeAdmin() { store.get('ss_token') ? loadApp() : loadWelcome(); }
 function adminLogin() {
   const code = $('adminCode').value;
@@ -446,93 +864,179 @@ function adminLogin() {
     $('adminLogin').classList.add('hidden'); $('adminPanel').classList.remove('hidden');
   });
 }
+$('adminCode').addEventListener('keydown', e => { if (e.key === 'Enter') adminLogin(); });
 function adminRefresh() { busy(null, async () => renderAdmin(await api('adminState', adminCode))); }
 function adminCall(btn, fn) {
   const args = Array.prototype.slice.call(arguments, 2);
-  return busy(btn, async () => renderAdmin(await api.apply(null, [fn, adminCode].concat(args))));
+  return busy(btn, async () => { const st = await api.apply(null, [fn, adminCode].concat(args)); renderAdmin(st); return st; });
+}
+function renderQR() {
+  if (!window.qrcode || $('qrBox').childElementCount) return;
+  const qr = qrcode(0, 'M'); qr.addData(APP_URL); qr.make();
+  $('qrBox').innerHTML = qr.createSvgTag({ cellSize: 6, margin: 0, scalable: true });
+  $('qrDownload').href = qr.createDataURL(10, 4);
+}
+function familySelect(p, families) {
+  const s = el('select', { title: 'Famille' });
+  s.append(el('option', { value: '', textContent: '🏠 Sans famille' }));
+  families.forEach(f => s.append(el('option', { value: f, textContent: '🏠 ' + f })));
+  s.append(el('option', { value: '__new', textContent: '＋ Nouvelle famille…' }));
+  s.value = p.family || '';
+  s.onchange = () => {
+    let v = s.value;
+    if (v === '__new') {
+      v = (prompt('Nom de la nouvelle famille (ex. « Famille Martin ») :') || '').trim();
+      if (!v) { s.value = p.family || ''; return; }
+    }
+    adminCall(null, 'adminSetFamily', p.name, v);
+  };
+  return s;
 }
 function renderAdmin(st) {
-  $('defaultCodeWarn').classList.toggle('hidden', !st.defaultCode);
+  adminSt = st;
+  renderQR();
+  $('weakCodeWarn').classList.toggle('hidden', !st.weakCode);
   const reg = st.participants.filter(p => p.claimed).length;
-  $('regCount').textContent = '(' + reg + '/' + st.participants.length + ' inscrits)';
+  $('regCount').textContent = reg + '/' + st.participants.length + ' inscrits';
+
+  // Participants
   const box = $('adminPeople'); box.innerHTML = '';
-  if (!st.participants.length) box.append(el('p', { className: 'muted', textContent: 'Ajoute les prénoms des participants.' }));
+  if (!st.participants.length) box.append(el('p', { className: 'muted', textContent: 'Ajoute les prénoms des participants ci-dessous.' }));
   st.participants.forEach(p => {
-    const row = el('div', { className: 'admin-person' }, [
-      el('span', { className: 'n', textContent: p.name }),
-      el('span', { className: 'pill ' + (p.claimed ? 'ok' : 'wait'), textContent: p.claimed ? 'inscrit' : 'en attente' }),
+    const meta = el('div', { className: 'meta' }, [
+      el('span', { className: 'pill ' + (p.claimed ? 'ok' : 'wait'), textContent: p.claimed ? '✓ inscrit' : 'en attente' }),
+      el('span', { className: 'pill ' + (p.wishes ? 'ok' : 'warn'), textContent: p.wishes + ' envie' + (p.wishes > 1 ? 's' : '') }),
+      el('span', { className: 'pill ' + (p.given ? 'ok' : 'warn'), textContent: p.given + ' idée' + (p.given > 1 ? 's' : '') + ' donnée' + (p.given > 1 ? 's' : '') }),
     ]);
-    if (p.claimed) row.append(el('button', { className: 'secondary', textContent: 'Code oublié', title: 'Permet à la personne de recréer son code',
-      onclick: e => confirm('Réinitialiser le code de ' + p.name + ' ? Ses idées sont conservées.') && adminCall(e.target, 'adminResetAccount', p.name) }));
-    if (!st.drawn) row.append(el('button', { className: 'danger', textContent: 'Retirer',
+    const actions = el('div', { className: 'actions' }, [
+      el('button', { className: 'btn soft small', textContent: '🔗 Lien perso', onclick: () => share(inviteText(p.name), personalLink(p.name)) }),
+    ]);
+    if (p.claimed) actions.append(el('button', { className: 'btn soft small', textContent: 'Code oublié',
+      onclick: e => confirm('Réinitialiser le code de ' + p.name + ' ? Son tirage et ses idées sont conservés.') && adminCall(e.target, 'adminResetAccount', p.name) }));
+    if (!st.drawn) actions.append(el('button', { className: 'btn danger small', textContent: 'Retirer',
       onclick: e => confirm('Retirer ' + p.name + ' et toutes ses idées ?') && adminCall(e.target, 'adminRemoveParticipant', p.name) }));
-    box.append(row);
+    const famColor = st.familyColors[p.family] || '';
+    const av = avatar(p.name, p.color || famColor, 'click');
+    av.title = 'Changer la couleur';
+    const sw = swatches(p.color, c => adminCall(null, 'adminSetColor', 'member', p.name, c), p.family ? 'Couleur de la famille' : 'Par défaut');
+    const swWrap = el('div', { className: 'hidden' }, [el('div', { className: 'muted', textContent: '🎨 Couleur de ' + p.name + (p.family ? ' (vide = couleur de la famille)' : '') }), sw]);
+    av.onclick = () => swWrap.classList.toggle('hidden');
+    const choices = st.rules.choices[p.name];
+    if (choices !== undefined && choices <= 2) meta.append(el('span', { className: 'pill warn', textContent: choices === 0 ? 'ne peut tirer personne' : 'peut tirer ' + choices + ' pers.' }));
+    box.append(el('div', { className: 'person' }, [
+      el('div', { className: 'head' }, [av, el('span', { className: 'n', textContent: p.name }),
+        el('button', { className: 'btn ghost small', textContent: '🎨', title: 'Couleur', onclick: () => swWrap.classList.toggle('hidden') })]),
+      meta,
+      swWrap,
+      familySelect(p, st.families),
+      actions,
+    ]));
+  });
+  const dl = $('familyList'); dl.innerHTML = '';
+  st.families.forEach(f => dl.append(el('option', { value: f })));
+
+  // Résumé des familles
+  const fs = $('familySummary'); fs.innerHTML = '';
+  if (!st.families.length) fs.append(el('p', { className: 'muted', textContent: 'Aucune famille pour l\'instant : choisis « ＋ Nouvelle famille… » dans la liste d\'un participant.' }));
+  st.families.forEach(f => {
+    const color = st.familyColors[f] || '';
+    const members = st.participants.filter(p => p.family === f);
+    const card = el('div', { className: 'fam-card' }, [
+      el('b', { textContent: '🏠 ' + f + ' · ' + members.length + ' membre' + (members.length > 1 ? 's' : '') }),
+      el('div', { className: 'members' }, members.map(m => el('span', { className: 'mchip' }, [avatar(m.name, m.color || color), document.createTextNode(m.name)]))),
+      swatches(color, c => adminCall(null, 'adminSetColor', 'family', f, c), 'Sans couleur'),
+    ]);
+    if (color) card.style.borderLeftColor = color;
+    fs.append(card);
   });
 
+  // État des règles
+  const rs = $('rulesStatus'); rs.innerHTML = '';
+  rs.className = 'rules ' + (st.rules.possible ? 'ok' : 'ko');
+  const tight = Object.keys(st.rules.choices).filter(n => st.rules.choices[n] <= 2);
+  rs.append(el('span', { style: 'font-size:22px', textContent: st.rules.possible ? '✓' : '⚠️' }), el('div', {}, [
+    el('b', { textContent: st.rules.possible ? 'Tirage possible avec ces règles' : (st.participants.length < 3 ? 'Pas encore assez de participants' : 'Tirage impossible avec ces règles') }),
+    el('span', { style: 'font-size:14px', textContent: st.rules.possible
+      ? (tight.length ? 'Attention, peu de choix pour : ' + tight.map(n => n + ' (' + st.rules.choices[n] + ')').join(', ') + '. Le tirage sera peu surprenant pour eux.' : 'Chacun a assez de choix pour garder la surprise.')
+      : st.rules.reason }),
+  ]));
+
+  // Exclusions
   ['exA', 'exB'].forEach((id, k) => {
     const s = $(id); s.innerHTML = '';
-    st.participants.forEach((p, i) => s.append(el('option', { value: p.name, textContent: p.name })));
+    const people = el('optgroup', { label: 'Personnes' });
+    st.participants.forEach(p => people.append(el('option', { value: p.name, textContent: p.name })));
+    s.append(people);
+    if (st.families.length) {
+      const fams = el('optgroup', { label: 'Familles entières' });
+      st.families.forEach(f => fams.append(el('option', { value: 'F:' + f, textContent: '🏠 ' + f })));
+      s.append(fams);
+    }
     if (k === 1 && st.participants.length > 1) s.selectedIndex = 1;
   });
+  const exLabel = v => v.indexOf('F:') === 0 ? '🏠 ' + v.slice(2) : v;
   const ul = $('exList'); ul.innerHTML = '';
   if (!st.exclusions.length) ul.append(el('li', { className: 'muted', textContent: 'Aucune exclusion.' }));
   st.exclusions.forEach(x => ul.append(el('li', {}, [
-    el('div', { className: 'txt', textContent: x.a + '  ⇄  ' + x.b }),
-    el('button', { className: 'del', textContent: '×', onclick: e => adminCall(null, 'adminRemoveExclusion', x.a, x.b) }),
+    el('div', { className: 'txt', textContent: exLabel(x.a) + '  ⇄  ' + exLabel(x.b) }),
+    el('button', { className: 'del', textContent: '×', onclick: () => adminCall(null, 'adminRemoveExclusion', x.a, x.b) }),
   ])));
 
+  // Réglages
+  $('setDate').value = st.settings.eventDate || '';
+  $('setBudget').value = st.settings.budget || '';
+  const lm = $('lastMessages'); lm.innerHTML = '';
+  if (st.messages.length) lm.append(el('label', { textContent: 'Derniers messages publiés' }));
+  st.messages.forEach(m => lm.append(el('div', { className: 'notif' }, [el('div', {}, [
+    el('div', { className: 't', textContent: m.title }), el('div', { className: 'b', textContent: m.body }), el('div', { className: 'w', textContent: timeAgo(m.created) }),
+  ])])));
+
+  // Tirage
   const all = st.participants.length >= 3 && reg === st.participants.length;
   $('drawBtn').classList.toggle('hidden', st.drawn);
-  $('drawBtn').disabled = !all;
+  $('drawBtn').disabled = !all || !st.rules.possible;
   $('resetDrawBtn').classList.toggle('hidden', !st.drawn);
   $('drawStatus').textContent = st.drawn
-    ? '✅ Le tirage a été fait. Chacun peut découvrir sa personne dans l\'application. (Toi non plus, tu ne connais pas les résultats !)'
-    : all ? 'Tout le monde est inscrit, tu peux lancer le tirage.'
+    ? '✓ Le tirage a été fait et chacun a été prévenu dans l\'app. Toi non plus, tu ne connais pas les résultats !'
+    : !st.rules.possible ? '⚠️ Les règles actuelles rendent le tirage impossible : modifie les familles ou exclusions.'
+    : all ? 'Tout le monde est inscrit : tu peux lancer le tirage. Les familles et exclusions seront respectées.'
           : 'Le tirage sera possible quand tous les participants (3 minimum) auront créé leur compte.';
 }
 function adminAdd(e) {
   e.preventDefault();
-  const n = $('newName').value;
-  adminCall(e.submitter, 'adminAddParticipant', n).then(() => { $('newName').value = ''; $('newName').focus(); });
+  adminCall(e.submitter, 'adminAddParticipant', $('newName').value, $('newFamily').value)
+    .then(st => { if (st) { $('newName').value = ''; $('newName').focus(); } });
 }
 function adminAddEx() { adminCall(null, 'adminAddExclusion', $('exA').value, $('exB').value); }
-function adminDraw() { if (confirm('Lancer le tirage au sort ?')) adminCall($('drawBtn'), 'adminDraw').then(() => toast('🎉 Tirage effectué !')); }
-function adminResetDraw() { if (confirm('Annuler le tirage ? Chacun perdra la personne qu\'il a tirée.')) adminCall($('resetDrawBtn'), 'adminResetDraw'); }
-
-/* ---------- Installation sur l'écran d'accueil ---------- */
-let deferredPrompt = null;
-const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-function hideInstall() { $('installBox').classList.add('hidden'); store.set('ss_install_hidden', '1'); }
-function setupInstall() {
-  if (isStandalone() || store.get('ss_install_hidden')) return;
-  if (isIOS) {
-    $('installTxt').innerHTML = 'Installe l\'app : touche <b>Partager</b> <span style="font-size:16px">⎋</span> puis <b>« Sur l\'écran d\'accueil »</b>.';
-    $('installBox').classList.remove('hidden');
-  }
+function adminSaveSettings(btn) {
+  adminCall(btn, 'adminSaveSettings', { eventDate: $('setDate').value, budget: $('setBudget').value })
+    .then(st => st && toast('Réglages enregistrés ✓'));
 }
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault(); deferredPrompt = e;
-  if (isStandalone() || store.get('ss_install_hidden')) return;
-  $('installTxt').textContent = 'Installe Secret Santa sur ton téléphone pour le retrouver facilement.';
-  $('installBtn').classList.remove('hidden');
-  $('installBox').classList.remove('hidden');
-});
-$('installBtn').onclick = async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt = null; $('installBox').classList.add('hidden');
-};
-window.addEventListener('appinstalled', () => $('installBox').classList.add('hidden'));
-if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+function adminBroadcast(btn) {
+  const subject = $('bcSubject').value.trim(), message = $('bcMessage').value.trim();
+  if (!confirm('Publier ce message dans la cloche de tout le monde ?')) return;
+  adminCall(btn, 'adminBroadcast', subject, message).then(st => {
+    if (st) { $('bcSubject').value = ''; $('bcMessage').value = ''; toast('Message publié 📣'); }
+  });
+}
+function broadcastWhatsApp() {
+  const s = $('bcSubject').value.trim(), m = $('bcMessage').value.trim();
+  if (!m) return toast('Écris d\'abord ton message.', true);
+  window.open('https://wa.me/?text=' + encodeURIComponent((s ? '*' + s + '*\n' : '') + m + '\n\n' + APP_URL), '_blank', 'noopener');
+}
+function adminDraw() {
+  if (confirm('Lancer le tirage au sort ? Chacun sera prévenu dans l\'app.'))
+    adminCall($('drawBtn'), 'adminDraw').then(st => st && toast('🎉 Tirage effectué !'));
+}
+function adminResetDraw() {
+  if (confirm('Annuler le tirage ? Chacun perdra la personne qu\'il a tirée.')) adminCall($('resetDrawBtn'), 'adminResetDraw');
 }
 
-/* ---------- Démarrage ---------- */
+/* ================== Démarrage ================== */
 setupInstall();
 if (!/^https:\/\//.test(API_URL)) { $('configError').classList.remove('hidden'); show('welcome'); }
-else store.get('ss_token') ? loadApp() : loadWelcome();
+else if (store.get('ss_token') && (!wantedName || wantedName === store.get('ss_name'))) loadApp();
+else loadWelcome();
 </script>
 </body>
 </html>
