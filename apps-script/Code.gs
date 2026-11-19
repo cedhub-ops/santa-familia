@@ -12,7 +12,7 @@
 const APP_NAME = 'Santa Familia';
 
 const SCHEMA = {
-  Participants: ['name', 'pinHash', 'salt', 'family', 'color'],
+  Participants: ['name', 'pinHash', 'salt', 'family', 'color', 'age'], // age : '' = adulte, 'enfant'
   Exclusions: ['a', 'b'],
   Ideas: ['id', 'forName', 'author', 'text', 'link', 'created'],
   Draw: ['giver', 'receiver'],
@@ -32,7 +32,7 @@ function doPost(e) {
   const API = {
     getPublicState, register, login, logout, getDashboard, addIdea, deleteIdea, markNotificationsRead,
     adminState, adminAddParticipant, adminRemoveParticipant, adminResetAccount,
-    adminSetFamily, adminSetColor, adminCheckRules, adminAddExclusion, adminRemoveExclusion,
+    adminSetFamily, adminSetAge, adminSetColor, adminCheckRules, adminAddExclusion, adminRemoveExclusion,
     adminSaveSettings, adminBroadcast, adminDraw, adminResetDraw,
   };
   let out;
@@ -286,6 +286,7 @@ function adminState(code) {
       claimed: !!p.pinHash,
       family: p.family,
       color: p.color,
+      age: ageOf_(p),
       wishes: ideas.filter(i => i.forName === p.name && i.author === p.name).length,
       given: ideas.filter(i => i.author === p.name && i.forName !== p.name).length,
     })),
@@ -304,7 +305,7 @@ function adminState(code) {
 
 function unique_(arr) { return arr.filter((v, i) => arr.indexOf(v) === i).sort(); }
 
-function adminAddParticipant(code, name, family) {
+function adminAddParticipant(code, name, family, age) {
   admin_(code);
   return withLock_(() => {
     name = clean_(name);
@@ -313,7 +314,7 @@ function adminAddParticipant(code, name, family) {
     if (isDrawn_()) throw new Error('Annule le tirage avant de modifier les participants.');
     const ps = read_('Participants');
     if (ps.some(p => p.name.toLowerCase() === name.toLowerCase())) throw new Error('Ce nom existe déjà.');
-    ps.push({ name: name, pinHash: '', salt: '', family: family });
+    ps.push({ name: name, pinHash: '', salt: '', family: family, age: age === 'enfant' ? 'enfant' : '' });
     write_('Participants', ps);
     return adminState(code);
   });
@@ -368,6 +369,21 @@ function adminSetFamily(code, name, family) {
   });
 }
 
+/** Adulte ou enfant : chaque groupe a son propre tirage au sort. */
+function adminSetAge(code, name, age) {
+  admin_(code);
+  return withLock_(() => {
+    if (age !== 'adulte' && age !== 'enfant') throw new Error('Choisis adulte ou enfant.');
+    if (isDrawn_()) throw new Error('Annule le tirage avant de changer un adulte en enfant (ou l\'inverse).');
+    const ps = read_('Participants');
+    const p = ps.find(x => x.name === name);
+    if (!p) throw new Error('Participant inconnu.');
+    p.age = age === 'enfant' ? 'enfant' : '';
+    write_('Participants', ps);
+    return adminState(code);
+  });
+}
+
 const PALETTE = ['#1f3a2e', '#3f7a5c', '#c9a45c', '#a4452f', '#7a3b5e', '#3b5b86', '#5f8fa8', '#b8743a', '#6b6f3a', '#5a5f66'];
 
 function familyColors_() {
@@ -396,14 +412,37 @@ function adminSetColor(code, kind, name, color) {
 }
 
 /** Le tirage est-il possible avec les règles actuelles ? Et combien de personnes chacun peut-il tirer ? */
+function ageOf_(p) { return p.age === 'enfant' ? 'enfant' : 'adulte'; }
+
+const GROUPS = [
+  { key: 'adulte', label: 'adultes' },
+  { key: 'enfant', label: 'enfants' },
+];
+
+/**
+ * Vérifie chaque tirage (adultes, enfants) séparément, avec les mêmes familles et exclusions.
+ * choices = nombre de personnes que chacun peut tirer DANS SON GROUPE.
+ */
 function checkRules_(ps, exclusions) {
-  if (ps.length < 3) return { possible: false, reason: 'Il faut au moins 3 participants.', choices: {} };
   const banned = banned_(ps, exclusions);
-  const names = ps.map(p => p.name);
   const choices = {};
-  names.forEach(g => { choices[g] = names.filter(r => r !== g && !banned.has(JSON.stringify([g, r]))).length; });
-  const possible = !!computeDraw_(names, banned);
-  return { possible: possible, reason: possible ? '' : 'Les familles et exclusions actuelles rendent le tirage impossible : assouplis une règle.', choices: choices };
+  const groups = {};
+  const problems = [];
+  GROUPS.forEach(g => {
+    const names = ps.filter(p => ageOf_(p) === g.key).map(p => p.name);
+    names.forEach(x => { choices[x] = names.filter(r => r !== x && !banned.has(JSON.stringify([x, r]))).length; });
+    let possible = true;
+    if (names.length === 1) {
+      possible = false;
+      problems.push('Tirage des ' + g.label + ' : il faut au moins 2 ' + g.label + ' (seul·e : ' + names[0] + ').');
+    } else if (names.length > 1 && !computeDraw_(names, banned)) {
+      possible = false;
+      problems.push('Tirage des ' + g.label + ' impossible avec ces familles et exclusions : assouplis une règle.');
+    }
+    groups[g.key] = { count: names.length, possible: possible };
+  });
+  if (ps.length < 2) problems.unshift('Ajoute au moins 2 participants.');
+  return { possible: !problems.length, reason: problems.join(' '), choices: choices, groups: groups };
 }
 
 function adminCheckRules(code) {
@@ -465,11 +504,21 @@ function adminDraw(code) {
   const st = withLock_(() => {
     if (isDrawn_()) throw new Error('Le tirage a déjà eu lieu.');
     const ps = read_('Participants');
-    if (ps.length < 3) throw new Error('Il faut au moins 3 participants.');
     const waiting = ps.filter(p => !p.pinHash).map(p => p.name);
     if (waiting.length) throw new Error('Pas encore inscrit(s) : ' + waiting.join(', '));
-    const result = computeDraw_(ps.map(p => p.name), banned_(ps, read_('Exclusions')));
-    if (!result) throw new Error('Impossible de faire un tirage avec ces familles et exclusions. Assouplis une règle.');
+    const exclusions = read_('Exclusions');
+    const check = checkRules_(ps, exclusions);
+    if (!check.possible) throw new Error(check.reason);
+    // Un tirage séparé pour les adultes et pour les enfants, avec les mêmes règles.
+    const banned = banned_(ps, exclusions);
+    let result = [];
+    GROUPS.forEach(g => {
+      const names = ps.filter(p => ageOf_(p) === g.key).map(p => p.name);
+      if (names.length < 2) return;
+      const r = computeDraw_(names, banned);
+      if (!r) throw new Error('Tirage des ' + g.label + ' impossible avec ces règles.');
+      result = result.concat(r);
+    });
     write_('Draw', result.map(r => ({ giver: r.giver, receiver: encode_(r.receiver) })));
     props_().setProperty('DRAWN', '1');
     notify_('*', 'draw', '🎁 Le tirage a eu lieu !', 'Découvre à qui tu offres un cadeau dans l\'onglet « Mon tirage ».');

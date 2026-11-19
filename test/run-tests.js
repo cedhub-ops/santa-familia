@@ -9,7 +9,7 @@ vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(__dirname, 'gas-mock.js'), 'utf8'), ctx);
 vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'apps-script', 'Code.gs'), 'utf8') +
   '\nthis.__api = {getPublicState,register,login,logout,getDashboard,addIdea,deleteIdea,markNotificationsRead,adminState,' +
-  'adminAddParticipant,adminRemoveParticipant,adminResetAccount,adminSetFamily,adminSetColor,adminCheckRules,adminAddExclusion,' +
+  'adminAddParticipant,adminRemoveParticipant,adminResetAccount,adminSetFamily,adminSetAge,adminSetColor,adminCheckRules,adminAddExclusion,' +
   'adminRemoveExclusion,adminSaveSettings,adminBroadcast,adminDraw,adminResetDraw,computeDraw_,banned_,doPost,doGet};', ctx);
 const A = ctx.__api;
 const props = ctx.PropertiesService.getScriptProperties();
@@ -189,5 +189,56 @@ A.adminResetDraw(C);
 assert.equal(A.getDashboard(tok.Alice).target, null);
 assert.ok(A.getDashboard(tok.Alice).notifications.items.some(i => /annulé/.test(i.title)));
 ok('annulation du tirage (annoncée dans la cloche)');
+
+// --- Adultes / enfants : deux tirages séparés ---
+// Martin : Alice, Bruno (adultes) + Chloé (enfant) ; Durand : David, Emma (adultes) + Hugo, Inès (enfants)
+// Sans famille : Farid, Gaëlle (adultes) + Jade (enfant)
+['Hugo', 'Inès'].forEach(n => A.adminAddParticipant(C, n, 'Durand', 'enfant'));
+throws(() => A.adminSetAge(C, 'Chloé', 'bébé'), /adulte ou enfant/);
+A.adminSetAge(C, 'Chloé', 'enfant');
+st = A.adminState(C);
+assert.equal(st.participants.find(p => p.name === 'Hugo').age, 'enfant');
+assert.equal(st.participants.find(p => p.name === 'Alice').age, 'adulte');
+assert.deepEqual(plain(st.rules.groups), { adulte: { count: 6, possible: true }, enfant: { count: 3, possible: false } });
+assert.ok(/Tirage des enfants impossible/.test(st.rules.reason));
+ok('enfants : Chloé (Martin) ne peut tirer que Hugo/Inès, mais Hugo et Inès (Durand) ne peuvent tirer que Chloé → impossible détecté');
+A.adminAddParticipant(C, 'Jade', '', 'enfant');
+st = A.adminState(C);
+assert.equal(st.rules.groups.enfant.possible, true);
+assert.equal(st.rules.choices.Chloé, 3); // Hugo, Inès, Jade
+assert.equal(st.rules.choices.Hugo, 2);  // Chloé, Jade (pas Inès : même famille)
+assert.equal(st.rules.choices.Alice, 4); // David, Emma, Farid, Gaëlle (pas d'enfants)
+ok('choix comptés dans son propre groupe uniquement');
+
+A.adminAddExclusion(C, 'Jade', 'F:Durand'); // Hugo, Inès et Jade ne peuvent plus tirer que Chloé
+assert.equal(A.adminState(C).rules.possible, false);
+A.adminRemoveExclusion(C, 'Jade', 'F:Durand');
+ok('les exclusions (famille entière) s\'appliquent aussi au tirage des enfants');
+
+const kids = ['Chloé', 'Hugo', 'Inès', 'Jade'];
+['Hugo', 'Inès', 'Jade'].forEach(n => { tok[n] = A.register(n, '1234').token; });
+A.adminDraw(C);
+const fam2 = { Alice: 'Martin', Bruno: 'Martin', 'Chloé': 'Martin', David: 'Durand', Emma: 'Durand', Hugo: 'Durand', 'Inès': 'Durand', Farid: '', 'Gaëlle': '', Jade: '' };
+const recv = new Set();
+Object.keys(fam2).forEach(g => {
+  const t = A.getDashboard(tok[g]).target.name;
+  recv.add(t);
+  assert.equal(kids.includes(g), kids.includes(t), g + ' → ' + t + ' : même groupe');
+  assert.ok(g !== t && !(fam2[g] && fam2[g] === fam2[t]), g + ' → ' + t + ' : famille');
+});
+assert.equal(recv.size, Object.keys(fam2).length);
+throws(() => A.adminSetAge(C, 'Jade', 'adulte'), /Annule le tirage/);
+A.adminResetDraw(C);
+ok('tirage : adultes → adultes, enfants → enfants, familles respectées, chacun reçoit 1 cadeau');
+
+for (let k = 0; k < 200; k++) {
+  const ps2 = Object.keys(fam2).map(n => ({ name: n, family: fam2[n], age: kids.includes(n) ? 'enfant' : '' }));
+  const ban = A.banned_(ps2, [{ a: 'Farid', b: 'F:Durand' }]);
+  const a = A.computeDraw_(ps2.filter(p => !p.age).map(p => p.name), ban);
+  const e = A.computeDraw_(kids, ban);
+  assert.ok(a && e);
+  a.forEach(x => assert.ok(!(x.giver === 'Farid' && fam2[x.receiver] === 'Durand') && !(fam2[x.giver] === 'Durand' && x.receiver === 'Farid')));
+}
+ok('200 tirages adultes + enfants valides avec exclusion personne ⇄ famille');
 
 console.log('\n' + passed + ' vérifications réussies');

@@ -138,6 +138,14 @@
   .pill.warn { background: var(--danger-soft); color: var(--danger); }
   .person .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .person select { margin: 0; padding: 9px 12px; font-size: 14px; }
+  .person .line { display: flex; gap: 8px; align-items: center; }
+  .person .line select { flex: 1; min-width: 0; }
+  .seg { display: inline-flex; background: var(--cream); border: 1.5px solid var(--line); border-radius: 999px; padding: 2px; flex: 0 0 auto; }
+  .seg button { border: 0; background: transparent; border-radius: 999px; padding: 7px 11px; font: 600 13px var(--sans); color: var(--muted); cursor: pointer; }
+  .seg button.on { background: var(--fir); color: var(--cream); }
+  .seg button:disabled { cursor: not-allowed; opacity: .6; }
+  .groups { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .groups span { background: rgba(255,255,255,.6); border-radius: 999px; padding: 3px 10px; font-size: 13px; font-weight: 600; }
   .person .actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
   .qr { display: grid; place-items: center; background: #fff; border-radius: 16px; padding: 14px; margin: 6px auto 12px; width: 220px; }
   .qr svg { width: 192px; height: 192px; display: block; }
@@ -394,6 +402,7 @@
           <label for="newName">Ajouter un participant</label>
           <input id="newName" placeholder="Prénom" maxlength="40">
           <input id="newFamily" placeholder="Famille (facultatif)" list="familyList" maxlength="40">
+          <label class="switch" style="margin:0 0 10px"><input id="newChild" type="checkbox"> C'est un enfant (tirage des enfants)</label>
           <button class="btn soft block">Ajouter</button>
         </form>
         <datalist id="familyList"></datalist>
@@ -893,6 +902,14 @@ function familySelect(p, families) {
   };
   return s;
 }
+function ageToggle(p, drawn) {
+  const seg = el('div', { className: 'seg', title: drawn ? 'Annule le tirage pour changer' : 'Tirage des adultes ou des enfants' });
+  [['adulte', 'Adulte'], ['enfant', '🧒 Enfant']].forEach(([v, label]) => {
+    seg.append(el('button', { type: 'button', className: p.age === v ? 'on' : '', textContent: label, disabled: drawn,
+      onclick: () => { if (p.age !== v) adminCall(null, 'adminSetAge', p.name, v); } }));
+  });
+  return seg;
+}
 function renderAdmin(st) {
   adminSt = st;
   renderQR();
@@ -929,7 +946,7 @@ function renderAdmin(st) {
         el('button', { className: 'btn ghost small', textContent: '🎨', title: 'Couleur', onclick: () => swWrap.classList.toggle('hidden') })]),
       meta,
       swWrap,
-      familySelect(p, st.families),
+      el('div', { className: 'line' }, [familySelect(p, st.families), ageToggle(p, st.drawn)]),
       actions,
     ]));
   });
@@ -944,7 +961,7 @@ function renderAdmin(st) {
     const members = st.participants.filter(p => p.family === f);
     const card = el('div', { className: 'fam-card' }, [
       el('b', { textContent: '🏠 ' + f + ' · ' + members.length + ' membre' + (members.length > 1 ? 's' : '') }),
-      el('div', { className: 'members' }, members.map(m => el('span', { className: 'mchip' }, [avatar(m.name, m.color || color), document.createTextNode(m.name)]))),
+      el('div', { className: 'members' }, members.map(m => el('span', { className: 'mchip' }, [avatar(m.name, m.color || color), document.createTextNode(m.name + (m.age === 'enfant' ? ' 🧒' : ''))]))),
       swatches(color, c => adminCall(null, 'adminSetColor', 'family', f, c), 'Sans couleur'),
     ]);
     if (color) card.style.borderLeftColor = color;
@@ -956,10 +973,14 @@ function renderAdmin(st) {
   rs.className = 'rules ' + (st.rules.possible ? 'ok' : 'ko');
   const tight = Object.keys(st.rules.choices).filter(n => st.rules.choices[n] <= 2);
   rs.append(el('span', { style: 'font-size:22px', textContent: st.rules.possible ? '✓' : '⚠️' }), el('div', {}, [
-    el('b', { textContent: st.rules.possible ? 'Tirage possible avec ces règles' : (st.participants.length < 3 ? 'Pas encore assez de participants' : 'Tirage impossible avec ces règles') }),
+    el('b', { textContent: st.rules.possible ? 'Les tirages sont possibles avec ces règles' : 'Tirage impossible pour l\'instant' }),
     el('span', { style: 'font-size:14px', textContent: st.rules.possible
       ? (tight.length ? 'Attention, peu de choix pour : ' + tight.map(n => n + ' (' + st.rules.choices[n] + ')').join(', ') + '. Le tirage sera peu surprenant pour eux.' : 'Chacun a assez de choix pour garder la surprise.')
       : st.rules.reason }),
+    el('div', { className: 'groups' }, [['adulte', 'Adultes'], ['enfant', 'Enfants']].map(([k, label]) => {
+      const g = st.rules.groups[k];
+      return el('span', { textContent: (k === 'enfant' ? '🧒 ' : '👤 ') + label + ' : ' + g.count + (g.count === 0 ? ' · pas de tirage' : (g.possible ? ' ✓' : ' ⚠️')) });
+    })),
   ]));
 
   // Exclusions
@@ -993,19 +1014,19 @@ function renderAdmin(st) {
   ])])));
 
   // Tirage
-  const all = st.participants.length >= 3 && reg === st.participants.length;
+  const all = st.participants.length >= 2 && reg === st.participants.length;
   $('drawBtn').classList.toggle('hidden', st.drawn);
   $('drawBtn').disabled = !all || !st.rules.possible;
   $('resetDrawBtn').classList.toggle('hidden', !st.drawn);
   $('drawStatus').textContent = st.drawn
     ? '✓ Le tirage a été fait et chacun a été prévenu dans l\'app. Toi non plus, tu ne connais pas les résultats !'
     : !st.rules.possible ? '⚠️ Les règles actuelles rendent le tirage impossible : modifie les familles ou exclusions.'
-    : all ? 'Tout le monde est inscrit : tu peux lancer le tirage. Les familles et exclusions seront respectées.'
-          : 'Le tirage sera possible quand tous les participants (3 minimum) auront créé leur compte.';
+    : all ? 'Tout le monde est inscrit : tu peux lancer le tirage. Les adultes tirent un adulte, les enfants un enfant, et les familles et exclusions sont respectées.'
+          : 'Le tirage sera possible quand tous les participants auront créé leur compte.';
 }
 function adminAdd(e) {
   e.preventDefault();
-  adminCall(e.submitter, 'adminAddParticipant', $('newName').value, $('newFamily').value)
+  adminCall(e.submitter, 'adminAddParticipant', $('newName').value, $('newFamily').value, $('newChild').checked ? 'enfant' : 'adulte')
     .then(st => { if (st) { $('newName').value = ''; $('newName').focus(); } });
 }
 function adminAddEx() { adminCall(null, 'adminAddExclusion', $('exA').value, $('exB').value); }
@@ -1026,7 +1047,7 @@ function broadcastWhatsApp() {
   window.open('https://wa.me/?text=' + encodeURIComponent((s ? '*' + s + '*\n' : '') + m + '\n\n' + APP_URL), '_blank', 'noopener');
 }
 function adminDraw() {
-  if (confirm('Lancer le tirage au sort ? Chacun sera prévenu dans l\'app.'))
+  if (confirm('Lancer les tirages au sort (adultes et enfants) ? Chacun sera prévenu dans l\'app.'))
     adminCall($('drawBtn'), 'adminDraw').then(st => st && toast('🎉 Tirage effectué !'));
 }
 function adminResetDraw() {

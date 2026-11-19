@@ -8,13 +8,14 @@ const ctx = { console, Buffer, Math, JSON, Date, Set, Object, String, Number, Ar
 vm.runInContext(fs.readFileSync(path.join(__dirname, 'gas-mock.js'), 'utf8'), ctx);
 ctx.PropertiesService.getScriptProperties().setProperty('ADMIN_CODE', 'sapin-2026');
 vm.runInContext(fs.readFileSync(path.join(root, 'apps-script', 'Code.gs'), 'utf8') +
-  '\nthis.G={doPost,adminAddParticipant,adminSetColor,adminSaveSettings,register,addIdea,login,getDashboard};', ctx);
+  '\nthis.G={doPost,adminAddParticipant,adminSetAge,adminSetColor,adminSaveSettings,register,addIdea,login,getDashboard};', ctx);
 const G = ctx.G, C = 'sapin-2026';
 const people = [['Cédric', 'Hubert'], ['Vico', 'Hubert'], ['Jules', 'Hubert'], ['Adrien', 'Dupont'], ['Anaïs', 'Dupont'],
   ['Abel', 'Dupont'], ['Fabien', 'Lambert'], ['Juliette', 'Lambert'], ['Mamoune', '']];
 people.forEach(([n, f]) => G.adminAddParticipant(C, n, f));
 G.adminSetColor(C, 'family', 'Hubert', '#3f7a5c'); G.adminSetColor(C, 'family', 'Dupont', '#a4452f'); G.adminSetColor(C, 'family', 'Lambert', '#3b5b86');
 G.adminSetColor(C, 'member', 'Mamoune', '#c9a45c');
+['Jules', 'Abel'].forEach(n => G.adminSetAge(C, n, 'enfant'));
 const d5 = new Date(Date.now() + 12 * 86400000);
 G.adminSaveSettings(C, { eventDate: d5.toISOString().slice(0, 10), budget: '30 €' });
 const tk = {}; people.slice(1).forEach(([n]) => tk[n] = G.register(n, '1111').token);
@@ -66,6 +67,8 @@ const srv = http.createServer((req, res) => {
   await p.waitForSelector('#adminPanel:not(.hidden)');
   await p.selectOption('#exA', 'Mamoune'); await p.selectOption('#exB', 'F:Lambert'); await p.click('text=Ajouter la règle');
   await p.waitForSelector('#exList >> text=Lambert');
+  await p.locator('.person:has-text("Juliette") .seg button:has-text("Enfant")').click();
+  await p.waitForSelector('.groups >> text=Enfants : 3');
   await p.locator('.person .avatar.click').nth(8).click();
   await p.locator('h2:has-text("Familles")').scrollIntoViewIfNeeded();
   await shot('5-familles-regles');
