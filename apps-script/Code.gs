@@ -24,7 +24,7 @@ const SCHEMA = {
 /* ================================================================== */
 
 function doGet() {
-  return json_({ ok: true, result: APP_NAME + ' API en ligne 🎄' });
+  return json_({ ok: true, result: APP_NAME + ' API en ligne 🎄', version: 'v3 adultes-enfants' });
 }
 
 function doPost(e) {
