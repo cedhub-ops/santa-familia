@@ -868,7 +868,7 @@ function adminLogin() {
   const code = $('adminCode').value;
   busy(null, async () => {
     const st = await api('adminState', code);
-    if (!st.rules) throw new Error('Le serveur Apps Script n\'est pas à jour : recopie Code.gs puis déploie une nouvelle version.');
+    if (!st.rules || !st.rules.groups) throw new Error('Le serveur Apps Script n\'est pas à jour : recopie Code.gs puis déploie une nouvelle version.');
     adminCode = code; $('adminCode').value = '';
     renderAdmin(st);
     $('adminLogin').classList.add('hidden'); $('adminPanel').classList.remove('hidden');
